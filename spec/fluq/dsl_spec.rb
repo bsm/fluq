@@ -1,5 +1,5 @@
 require 'spec_helper'
 
-describe Fluq::Dsl do
+describe Fluq::DSL do
   it 'later'
 end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Fluq::Dsl::Options do
+describe Fluq::DSL::Options do
 
   it 'should store options' do
     subject.val 42

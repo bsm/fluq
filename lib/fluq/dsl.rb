@@ -10,14 +10,14 @@ class Fluq::DSL
   # @param [Symbol] input type, e.g. :socket
   def input(type, &block)
     klass    = Fluq::Instance.const_get(type.to_s.capitalize)
-    instance = klass.new(Fluq::DSL::Options.new(&block))
+    instance = klass.new Fluq::DSL::Options.new(&block).to_hash
     inputs.push find_input(type).new(options)
   end
 
   # @param [Symbol] handler type, e.g. :forward, :counter
   def handler(type, &block)
     klass    = Fluq::Handler.const_get(type.to_s.capitalize)
-    instance = klass.new(Fluq::DSL::Options.new(&block))
+    instance = klass.new Fluq::DSL::Options.new(&block).to_hash
     handlers.push(instance)
   end
 

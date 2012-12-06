@@ -7,8 +7,8 @@ class Fluq::Handler::Forward < Fluq::Handler::Buffered
   # @raises [ArgumentError] when no URLs provided
   def initialize(*)
     super
-    @urls = Array(config[:urls]).map {|url| Fluq.parse_url(url) }
-    raise ArgumentError, "No URLs configured" if urls.empty?
+    @urls = Array(config[:to]).map {|url| Fluq.parse_url(url) }
+    raise ArgumentError, "No `to` option given" if urls.empty?
   end
 
   # @see Fluq::Handler::Buffered#on_flush
