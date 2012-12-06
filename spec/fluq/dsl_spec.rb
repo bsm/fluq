@@ -25,8 +25,8 @@ describe Fluq::DSL do
   it 'should evaluate configuration' do
     runner = Thread.new { subject.run }; sleep 0.01
     subject.inputs.should have(1).item
-    subject.handlers.should have(1).item
     Fluq.reactor.handlers.should have(1).item
+    subject.handlers.should have(1).item
+    subject.inputs.last.finalize
   end
-
 end
