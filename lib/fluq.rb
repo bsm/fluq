@@ -6,6 +6,7 @@ require 'forwardable'
 require 'celluloid'
 require 'atomic'
 require 'msgpack'
+require 'multi_json'
 
 module Fluq
   extend self

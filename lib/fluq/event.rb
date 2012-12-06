@@ -37,6 +37,10 @@ class Fluq::Event < Hash
   end
   alias :eql? :==
 
+  def to_s
+    "#{tag}\t#{timestamp}\t#{MultiJson.encode(self)}"
+  end
+
   # @return [String] inspection
   def inspect
     [tag, timestamp, Hash.new.update(self)].inspect
