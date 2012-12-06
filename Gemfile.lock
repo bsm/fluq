@@ -1,22 +1,16 @@
 PATH
   remote: .
   specs:
-    fluq (0.6.1)
+    fluq (0.6.2)
       atomic
       celluloid-io
       msgpack
-      multi_json
-    fluq-java (0.6.1-java)
-      atomic
-      celluloid-io
-      msgpack-jruby
       multi_json
 
 GEM
   remote: http://rubygems.org/
   specs:
     atomic (1.0.1)
-    atomic (1.0.1-java)
     celluloid (0.12.3)
       facter (>= 1.6.12)
       timers (>= 1.0.0)
@@ -26,10 +20,8 @@ GEM
     diff-lcs (1.1.3)
     facter (1.6.16)
     msgpack (0.4.7)
-    msgpack-jruby (1.3.0-java)
     multi_json (1.4.0)
     nio4r (0.4.3)
-    nio4r (0.4.3-java)
     rake (10.0.2)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
