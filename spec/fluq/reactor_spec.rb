@@ -11,7 +11,7 @@ describe FluQ::Reactor do
 
   its(:handlers) { should == {} }
   its(:workers)  { should be_a(Celluloid) }
-  its(:inputs)   { should be_instance_of(Array) }
+  its(:inputs)   { should be_a(Celluloid) }
 
   it "should listen to inputs" do
     server = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")

@@ -1,6 +1,6 @@
 class FluQ::Reactor
 
-  class FluQ::Reactor::Worker
+  class Worker
     include Celluloid
 
     # @param [FluQ::Handler::Base] handler
@@ -10,7 +10,7 @@ class FluQ::Reactor
     end
   end
 
-  # attr_reader [Array] inputs
+  # attr_reader [Celluloid::SupervisionGroup] inputs
   attr_reader :inputs
 
   # attr_reader [Hash] handlers
@@ -21,7 +21,7 @@ class FluQ::Reactor
 
   def initialize(*)
     super
-    @inputs   = []
+    @inputs   = Celluloid::SupervisionGroup.new
     @handlers = {}
     @workers  = FluQ::Reactor::Worker.pool
   end
@@ -30,10 +30,8 @@ class FluQ::Reactor
   # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
-    input = klass.new(*args)
-    inputs.push(input)
-    input.run!
-    input
+    member = inputs.supervise(klass, *args)
+    member.actor
   end
 
   # Registers a handler
@@ -50,12 +48,6 @@ class FluQ::Reactor
     event = FluQ::Event.new(tag, timestamp, record)
     handlers.each {|_, handler| @workers.process!(handler, event) }
     true
-  end
-
-  # Terminate on shutdown
-  def terminate
-    inputs.each(&:terminate)
-    workers.terminate
   end
 
 end

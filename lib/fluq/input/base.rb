@@ -6,8 +6,4 @@ class FluQ::Input::Base
     super()
   end
 
-  # @abstract
-  def run!
-  end
-
 end

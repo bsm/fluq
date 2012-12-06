@@ -31,7 +31,7 @@ module FluQ
 
   # @param [String] the environment
   def env
-    @@env ||= ENV['FLUQ_ENV'] || "developemnt"
+    @@env ||= ENV['FLUQ_ENV'] || "development"
   end
 
   # @param [Pathname] the root

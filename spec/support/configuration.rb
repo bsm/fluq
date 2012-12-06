@@ -31,6 +31,16 @@ class TestBufferedHandler < FluQ::Handler::Buffered
   end
 end
 
+Celluloid::SupervisionGroup.class_eval do
+
+  def __reset__
+    finalize
+    sleep(0.001) while actors.any?
+    @members.clear
+  end
+
+end
+
 RSpec.configure do |c|
   c.before do
     TestHandler.events.clear
@@ -38,8 +48,8 @@ RSpec.configure do |c|
     TestBufferedHandler.flushed.clear
   end
   c.after do
-    FluQ.reactor.inputs.each(&:terminate)
-    FluQ.reactor.inputs.clear
+    # FluQ.reactor.inputs.finalize
+    FluQ.reactor.inputs.__reset__
     FluQ.reactor.handlers.clear
   end
 end

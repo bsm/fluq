@@ -1,6 +1,6 @@
 require 'celluloid/io'
 
-class FluQ::Input::Socket
+class FluQ::Input::Socket < FluQ::Input::Base
   include Celluloid::IO
 
   # @attr_reader [URI] url the URL
@@ -16,7 +16,6 @@ class FluQ::Input::Socket
   # @example Launch a server
   #
   #   server = FluQ::Server.new(bind: "tcp://localhost:7654")
-  #   server.run!
   #
   def initialize(options = {})
     url = options[:bind]
@@ -29,6 +28,7 @@ class FluQ::Input::Socket
     when 'unix'
       UNIXServer.new(@url.path)
     end
+    run!
   end
 
   # Destructor. Close connections.
@@ -37,16 +37,17 @@ class FluQ::Input::Socket
     FileUtils.rm_f(url.path) if url.scheme == "unix"
   end
 
-  # Start the server. Call `#run!` to launch as actor.
-  def run
-    loop { handle_connection! server.accept }
-  end
-
   private
+
+    # Start the server. Call `#run!` to launch as actor.
+    def run
+      loop { handle_connection! server.accept }
+    end
 
     def handle_connection(socket)
       loop do
         @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
+          raise "STuPID ERROR" if tag == "b.c"
           FluQ.reactor.process(tag, timestamp, record)
         end
       end

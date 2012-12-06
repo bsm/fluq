@@ -27,4 +27,10 @@ describe FluQ::DSL do
     FluQ.reactor.inputs.should have(1).actors
     FluQ.reactor.should have(1).handlers
   end
+
+  it 'should evaluate configuration' do
+    runner = Thread.new { subject.run }; sleep 0.01
+    FluQ.reactor.inputs.should have(1).actors
+    FluQ.reactor.should have(1).handlers
+  end
 end
