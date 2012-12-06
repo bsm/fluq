@@ -88,7 +88,7 @@ module FluQ
             @options[:daemon] = true
           end
 
-          o.on "--pidfile [PATH]", "Path to pidfile" do |val|
+          o.on "--pidfile [PATH]", "Path to pidfile, defaults to tmp/pids/ENVIRONMENT.pid" do |val|
             @options[:pidfile] = val
           end
           o.separator ""
