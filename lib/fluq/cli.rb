@@ -38,6 +38,14 @@ module FluQ
         STDERR.reopen("/dev/null", "w")
       end
 
+      if options[:log]
+        Fluq.log_to(options[:log])
+      end
+
+      if options[:verbose]
+        Fluq.logger.level = ::Logger::DEBUG
+      end
+
       @pidfile = options[:pidfile] || FluQ.root.join("tmp", "pids", "#{FluQ.env}.pid")
       FileUtils.mkdir_p(File.dirname(@pidfile))
       File.open(@pidfile, "w") {|f| f.write Process.pid }
@@ -62,15 +70,38 @@ module FluQ
           o.banner = "Usage: #{File.basename($0)} [OPTIONS]"
 
           o.separator ""
-          o.separator "Common options:"
+          o.separator "Required:"
 
-          o.on "-C", "--config PATH", "Load PATH as a config file" do |val|
+          o.on "-C", "--config FILE", "Use this config file" do |val|
             @options[:config] = val
           end
 
-          o.on("-e", "--environment [ENV]", String, "The environment, defaults to 'development'") do |val|
+          o.separator ""
+          o.separator "Optional:"
+
+          o.on("-e", "--environment ENV", "The environment, defaults to 'development'") do |val|
             @options[:env] = val
           end
+
+          o.on("-l", "--log FILE", "File to log to") do |val|
+            @options[:env] = val
+          end
+
+          o.on("-v", "--verbose", "Use verbose output") do |val|
+            @options[:verbose] = true
+          end
+
+          o.separator ""
+
+          o.on "-d", "--daemonize", "Run as a daemon" do
+            @options[:daemon] = true
+          end
+
+          o.on "--pidfile FILE", "Path to pidfile, defaults to tmp/pids/ENVIRONMENT.pid" do |val|
+            @options[:pidfile] = val
+          end
+
+          o.separator ""
 
           o.on("-h", "--help", "Show this message") do
             puts o
@@ -81,17 +112,6 @@ module FluQ
             puts FluQ::VERSION
             exit
           end
-
-          o.separator ""
-          o.separator "Server options:"
-          o.on "-d", "--daemonize", "Run as a daemon" do
-            @options[:daemon] = true
-          end
-
-          o.on "--pidfile [PATH]", "Path to pidfile, defaults to tmp/pids/ENVIRONMENT.pid" do |val|
-            @options[:pidfile] = val
-          end
-          o.separator ""
         end
       end
 

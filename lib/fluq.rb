@@ -21,7 +21,7 @@ module FluQ
 
   # @return [Logger] the logger instance
   def logger
-    @@logger || send(:logger=, _default_logger)
+    @@logger || log_to(root.join("log", "fluq.log"))
   end
 
   # @param [Logger] the logger to use
@@ -55,16 +55,15 @@ module FluQ
     end
   end
 
-  private
+  # @param [String] path
+  def log_to(path)
+    path = Pathname.new(path)
+    FileUtils.mkdir_p(path.dirname)
 
-    def _default_logger
-      path = root.join("log", "#{env}.log")
-      FileUtils.mkdir_p(path.dirname)
-
-      default = ::Logger.new(path)
-      default.level = ::Logger::INFO if env == "production"
-      default
-    end
+    self.logger = ::Logger.new(path)
+    logger.level = ::Logger::INFO if env == "production"
+    logger
+  end
 
   init!
 end
