@@ -7,6 +7,6 @@ describe Fluq::Buffer::Memory do
 
   it_behaves_like "a buffer"
   it { should be_a(Fluq::Buffer::Base) }
-  its(:events)     { should == [] }
+  its(:store)   { should == [] }
 
 end

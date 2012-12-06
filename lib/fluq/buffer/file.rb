@@ -9,7 +9,6 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
     super
     @pac  = MessagePack::Unpacker.new
     @root = Fluq.root.join("tmp/buffers/#{handler.name}/")
-    @size = Atomic.new(0)
 
     # Ensure the directory exists
     FileUtils.mkdir_p(root)
@@ -25,10 +24,6 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
     end
   end
 
-  def size
-    @size.value
-  end
-
   # Rotate the current file
   def rotate!
     previous = current
@@ -38,13 +33,6 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
   end
   alias_method :finalize, :rotate!
 
-  # @see Fluq::Buffer::Base#push
-  def push(event)
-    current.write(event.encode)
-    @size.update {|v| v += 1 }
-    rotate! if current.pos > FILE_LIMIT
-  end
-
   # @param [Symbol<Pathname>] scope, either `:open` or `:closed`
   # @return [Array<Pathname>] scoped paths
   def glob(scope)
@@ -52,6 +40,13 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
   end
 
   protected
+
+    # @see Fluq::Buffer::Base#on_event
+    def on_event(event)
+      current.write(event.encode)
+      @size.update {|v| v += 1 }
+      rotate! if current.pos > FILE_LIMIT
+    end
 
     # @return [Hash] file scopes
     def scopes
