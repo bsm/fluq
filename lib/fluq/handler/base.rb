@@ -9,8 +9,8 @@ class Fluq::Handler::Base
   attr_reader :config
 
   # @param [Hash] options
-  # @option options [String] name a (unique) handler identifier
-  # @option options [String] pattern tag pattern to match
+  # @option options [String] :name a (unique) handler identifier
+  # @option options [String] :pattern tag pattern to match
   # @example
   #
   #   class MyHandler < Fluq::Handler::Base

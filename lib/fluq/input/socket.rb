@@ -10,18 +10,23 @@ class Fluq::Input::Socket
   attr_reader :server
 
   # Constructor.
-  # @param [String] url the URL to bind to
+  # @option options [String] :bind the URL to bind to
+  # @raises [ArgumentError] when no bind URL provided
   # @raises [URI::InvalidURIError] if invalid URL is given
   # @example Launch a server
-  #   server = Fluq::Server.new("tcp://localhost:7654")
+  #
+  #   server = Fluq::Server.new(bind: "tcp://localhost:7654")
   #   server.run!
-  def initialize(url)
+  #
+  def initialize(options = {})
+    url = options[:bind]
+    raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless url
     @url    = Fluq.parse_url(url)
     @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
-    when "tcp"
+    when 'tcp'
       TCPServer.new(@url.host, @url.port)
-    when "unix"
+    when 'unix'
       UNIXServer.new(@url.path)
     end
   end
@@ -48,4 +53,3 @@ class Fluq::Input::Socket
     end
 
 end
-
