@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
-
-begin
-  require "fluq/cli"
-rescue LoadError
-  $:.unshift(File.expand_path('../../lib', __FILE__))
-  require "fluq/cli"
+if File.exists?(File.join(File.expand_path('../..', __FILE__), '.git'))
+  fluq_path = File.expand_path('../../lib', __FILE__)
+  $:.unshift(fluq_path)
 end
+
+require 'fluq/cli'
 
 FluQ::CLI.run
