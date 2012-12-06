@@ -23,7 +23,7 @@ class Fluq::Event < Hash
 
   # @return [String] encoded bytes
   def encode
-    to_a.to_msgpack
+    MessagePack.pack(to_a)
   end
 
   # @return [Boolean] true if comparable

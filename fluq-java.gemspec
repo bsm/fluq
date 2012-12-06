@@ -4,7 +4,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "fluq/version"
 
 Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
+  s.platform = "jruby"
   s.required_ruby_version = '>= 1.9.1'
   s.required_rubygems_version = ">= 1.8.0"
 
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.files        = Dir['lib/**/*']
   s.test_files   = Dir['spec/**/*']
 
-  s.add_dependency "msgpack"
+  s.add_dependency "msgpack-jruby"
   s.add_dependency "celluloid-io"
   s.add_dependency "atomic"
   s.add_dependency "multi_json"
