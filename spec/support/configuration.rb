@@ -11,7 +11,7 @@ class TestHandler < FluQ::Handler::Base
 end
 
 class TestBufferedHandler < FluQ::Handler::Buffered
-  @@events = Hash.new {|h, k| h[k] = [] }
+  @@events  = Hash.new {|h, k| h[k] = [] }
   @@flushed = Hash.new {|h, k| h[k] = [] }
 
   def self.events
@@ -31,14 +31,6 @@ class TestBufferedHandler < FluQ::Handler::Buffered
   end
 end
 
-# Monkey patch
-Celluloid::SupervisionGroup.class_eval do
-  def clear
-    @members.clear
-  end
-end
-
-
 RSpec.configure do |c|
   c.before do
     TestHandler.events.clear
@@ -46,7 +38,7 @@ RSpec.configure do |c|
     TestBufferedHandler.flushed.clear
   end
   c.after do
-    FluQ.reactor.inputs.finalize
+    FluQ.reactor.inputs.each(&:terminate)
     FluQ.reactor.inputs.clear
     FluQ.reactor.handlers.clear
   end
