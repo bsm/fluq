@@ -4,7 +4,6 @@ describe Fluq::Reactor do
 
   let(:reactor) { described_class.new }
   subject { reactor }
-  after   { reactor.handlers.clear }
 
   def wait_for_workers!
     sleep(0.001) while reactor.workers.tasks.any? {|t| [:running, :sleeping].include?(t.status) }
@@ -12,6 +11,14 @@ describe Fluq::Reactor do
 
   its(:handlers) { should == {} }
   its(:workers)  { should be_a(Celluloid) }
+  its(:inputs)  { should be_a(Celluloid) }
+  its(:inputs)  { should have(:no).actors }
+
+  it "should listen to inputs" do
+    server = subject.listen(Fluq::Input::Socket, bind: "tcp://127.0.0.1:7654")
+    subject.inputs.should have(1).actors
+    server.terminate
+  end
 
   it "should register handlers" do
     h1 = Fluq::Handler::Buffered.new

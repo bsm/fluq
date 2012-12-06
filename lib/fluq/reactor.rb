@@ -10,6 +10,9 @@ class Fluq::Reactor
     end
   end
 
+  # attr_reader [Celluloid::SupervisorGroup] inputs
+  attr_reader :inputs
+
   # attr_reader [Hash] handlers
   attr_reader :handlers
 
@@ -18,8 +21,18 @@ class Fluq::Reactor
 
   def initialize(*)
     super
+    @inputs   = Celluloid::SupervisionGroup.new
     @handlers = {}
     @workers  = Fluq::Reactor::Worker.pool
+  end
+
+  # Listens to an input
+  # @param [Class<Fluq::Input::Base>] klass input class
+  # @param [multiple] args initialization arguments
+  def listen(klass, *args)
+    member = inputs.supervise(klass, *args)
+    member.actor.run!
+    member.actor
   end
 
   # Registers a handler
