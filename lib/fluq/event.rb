@@ -1,4 +1,4 @@
-class Fluq::Event < Hash
+class FluQ::Event < Hash
 
   attr_reader :tag, :timestamp
 

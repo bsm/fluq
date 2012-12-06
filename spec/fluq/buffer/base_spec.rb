@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Fluq::Buffer::Base do
+describe FluQ::Buffer::Base do
 
   let(:handler) { TestBufferedHandler.new flush_rate: 2, buffer: 'memory' }
   subject       { handler.send(:buffer) }
@@ -12,10 +12,10 @@ describe Fluq::Buffer::Base do
 
   it 'should flush when rate is reached' do
     lambda {
-      subject.push Fluq::Event.new("t", Time.now.to_i, {})
+      subject.push FluQ::Event.new("t", Time.now.to_i, {})
     }.should_not change { TestBufferedHandler.flushed[handler.name] }
     lambda {
-      subject.push Fluq::Event.new("t", Time.now.to_i, {})
+      subject.push FluQ::Event.new("t", Time.now.to_i, {})
     }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
   end
 
@@ -28,13 +28,13 @@ describe Fluq::Buffer::Base do
   describe "flushing" do
 
     it 'should clear flushed events' do
-      subject.push Fluq::Event.new("t", Time.now.to_i, {})
+      subject.push FluQ::Event.new("t", Time.now.to_i, {})
       lambda { subject.flush }.should change(subject, :size).to(0)
     end
 
     it 'should keep events if flush fails' do
-      subject.push Fluq::Event.new("t", Time.now.to_i, {})
-      handler.should_receive(:on_flush).and_raise(Fluq::Handler::Buffered::FlushError)
+      subject.push FluQ::Event.new("t", Time.now.to_i, {})
+      handler.should_receive(:on_flush).and_raise(FluQ::Handler::Buffered::FlushError)
       lambda { subject.flush }.should_not change(subject, :size).from(1)
     end
 

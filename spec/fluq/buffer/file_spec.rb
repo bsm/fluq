@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Fluq::Buffer::File do
+describe FluQ::Buffer::File do
 
-  let(:handler) { Fluq::Handler::Buffered.new buffer: "file", name: "file_test" }
-  let(:root)    { Fluq.root.join("../scenario/tmp/buffers/file_test") }
-  let(:event)   { Fluq::Event.new("tag", 1313131313, { "a" => "1" }) }
+  let(:handler) { FluQ::Handler::Buffered.new buffer: "file", name: "file_test" }
+  let(:root)    { FluQ.root.join("../scenario/tmp/buffers/file_test") }
+  let(:event)   { FluQ::Event.new("tag", 1313131313, { "a" => "1" }) }
 
   subject       { handler.send(:buffer) }
   before        { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
@@ -16,7 +16,7 @@ describe Fluq::Buffer::File do
   end
 
   it_behaves_like "a buffer"
-  it { should be_a(Fluq::Buffer::Base) }
+  it { should be_a(FluQ::Buffer::Base) }
   its(:current) { should be_instance_of(File) }
   its(:current) { subject.path.should match /scenario\/tmp\/buffers\/file_test\/\d{10}\.[0-9a-f]{8}\.open$/  }
 
@@ -25,7 +25,7 @@ describe Fluq::Buffer::File do
     it "should create relevant paths" do
       FileUtils.rm_rf root
       lambda { subject }.should change {
-        Fluq.root.join("../scenario/tmp/buffers/file_test").directory?
+        FluQ.root.join("../scenario/tmp/buffers/file_test").directory?
       }.to(true)
     end
 

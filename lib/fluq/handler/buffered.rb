@@ -1,15 +1,15 @@
-class Fluq::Handler::Buffered < Fluq::Handler::Base
-  FlushError = Class.new(Fluq::Error)
+class FluQ::Handler::Buffered < FluQ::Handler::Base
+  FlushError = Class.new(FluQ::Error)
 
   attr_reader :buffer
 
-  # @see Fluq::Handler::Base#initialize
+  # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @buffer = Fluq::Buffer.const_get(config[:buffer].to_s.capitalize).new(self)
+    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self)
   end
 
-  # @see Fluq::Handler::Base#on_event
+  # @see FluQ::Handler::Base#on_event
   def on_event(event)
     buffer.push event
   end

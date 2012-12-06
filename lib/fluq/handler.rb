@@ -1,4 +1,4 @@
-module Fluq::Handler
+module FluQ::Handler
 end
 
 %w'base buffered forward log'.each do |name|

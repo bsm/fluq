@@ -2,7 +2,7 @@ require 'fluq'
 require 'optparse'
 require 'English'
 
-class Fluq::CLI
+class FluQ::CLI
 
   def self.run
     new

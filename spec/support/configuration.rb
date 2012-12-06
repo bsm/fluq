@@ -1,4 +1,4 @@
-class TestHandler < Fluq::Handler::Base
+class TestHandler < FluQ::Handler::Base
   @@events = Hash.new {|h, k| h[k] = [] }
 
   def self.events
@@ -10,7 +10,7 @@ class TestHandler < Fluq::Handler::Base
   end
 end
 
-class TestBufferedHandler < Fluq::Handler::Buffered
+class TestBufferedHandler < FluQ::Handler::Buffered
   @@events = Hash.new {|h, k| h[k] = [] }
   @@flushed = Hash.new {|h, k| h[k] = [] }
 
@@ -46,9 +46,9 @@ RSpec.configure do |c|
     TestBufferedHandler.flushed.clear
   end
   c.after do
-    Fluq.reactor.inputs.finalize
-    Fluq.reactor.inputs.clear
-    Fluq.reactor.handlers.clear
+    FluQ.reactor.inputs.finalize
+    FluQ.reactor.inputs.clear
+    FluQ.reactor.handlers.clear
   end
 end
 

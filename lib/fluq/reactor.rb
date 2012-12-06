@@ -1,10 +1,10 @@
-class Fluq::Reactor
+class FluQ::Reactor
 
-  class Fluq::Reactor::Worker
+  class FluQ::Reactor::Worker
     include Celluloid
 
-    # @param [Fluq::Handler::Base] handler
-    # @param [Fluq::Event] event
+    # @param [FluQ::Handler::Base] handler
+    # @param [FluQ::Event] event
     def process(handler, event)
       handler.on_event(event) if handler.match?(event)
     end
@@ -23,11 +23,11 @@ class Fluq::Reactor
     super
     @inputs   = Celluloid::SupervisionGroup.new
     @handlers = {}
-    @workers  = Fluq::Reactor::Worker.pool
+    @workers  = FluQ::Reactor::Worker.pool
   end
 
   # Listens to an input
-  # @param [Class<Fluq::Input::Base>] klass input class
+  # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
     member = inputs.supervise(klass, *args)
@@ -36,7 +36,7 @@ class Fluq::Reactor
   end
 
   # Registers a handler
-  # @param [Class<Fluq::Handler::Base>] klass handler class
+  # @param [Class<FluQ::Handler::Base>] klass handler class
   # @param [multiple] args initialization arguments
   def register(klass, *args)
     handler = klass.new(*args)
@@ -44,9 +44,9 @@ class Fluq::Reactor
     handlers[handler.name] = handler
   end
 
-  # @see Fluq::Event#initialize
+  # @see FluQ::Event#initialize
   def process(tag, timestamp, record)
-    event = Fluq::Event.new(tag, timestamp, record)
+    event = FluQ::Event.new(tag, timestamp, record)
     handlers.each {|_, handler| @workers.process!(handler, event) }
     true
   end

@@ -1,14 +1,14 @@
-class Fluq::Handler::Log < Fluq::Handler::Base
+class FluQ::Handler::Log < FluQ::Handler::Base
 
-  # @see Fluq::Handler::Base#initialize
+  # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @full_path = Fluq.root.join(config[:path]).to_s.freeze
+    @full_path = FluQ.root.join(config[:path]).to_s.freeze
     @rewrite   = config[:rewrite]
     @convert   = config[:convert]
   end
 
-  # @see Fluq::Handler::Base#on_event
+  # @see FluQ::Handler::Base#on_event
   def on_event(event)
     tag  = @rewrite.call(event.tag)
     path = event.time.strftime(@full_path.gsub("%t", tag))

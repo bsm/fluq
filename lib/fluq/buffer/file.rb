@@ -1,14 +1,14 @@
-class Fluq::Buffer::File < Fluq::Buffer::Base
+class FluQ::Buffer::File < FluQ::Buffer::Base
   FILE_LIMIT = 128 * 1024 * 1024 # 128M
 
   # @attr_reader [Pathname] buffer root
   attr_reader :root
 
-  # @see Fluq::Buffer::Base#initialize
+  # @see FluQ::Buffer::Base#initialize
   def initialize(*)
     super
     @pac  = MessagePack::Unpacker.new
-    @root = Fluq.root.join("tmp/buffers/#{handler.name}/")
+    @root = FluQ.root.join("tmp/buffers/#{handler.name}/")
 
     # Ensure the directory exists
     FileUtils.mkdir_p(root)
@@ -41,7 +41,7 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
 
   protected
 
-    # @see Fluq::Buffer::Base#on_event
+    # @see FluQ::Buffer::Base#on_event
     def on_event(event)
       current.write(event.encode)
       @size.update {|v| v += 1 }

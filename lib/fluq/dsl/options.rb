@@ -1,4 +1,4 @@
-class Fluq::DSL::Options
+class FluQ::DSL::Options
 
   # Constructor
   # @yield options assigment

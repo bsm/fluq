@@ -1,11 +1,11 @@
-class Fluq::Buffer::Base
+class FluQ::Buffer::Base
   extend Forwardable
 
   attr_reader :handler, :timers
   private     :handler, :timers
 
   # Constructor
-  # @param [Fluq::Handler::Base] handler
+  # @param [FluQ::Handler::Base] handler
   def initialize(handler)
     @handler    = handler
     @interval   = handler.config[:flush_interval].to_i
@@ -23,7 +23,7 @@ class Fluq::Buffer::Base
       begin
         handler.on_flush(buffer)
         commit(buffer, *args)
-      rescue Fluq::Handler::Buffered::FlushError => e
+      rescue FluQ::Handler::Buffered::FlushError => e
         revert(buffer, *args)
       end
     end
@@ -31,7 +31,7 @@ class Fluq::Buffer::Base
   end
 
   # @abstract
-  # @param [Fluq::Event] an event to buffer
+  # @param [FluQ::Event] an event to buffer
   def push(event)
     on_event(event)
     flush unless size < @rate
@@ -51,7 +51,7 @@ class Fluq::Buffer::Base
     end
 
     # @abstract
-    # @yieldparam [Array<Fluq::Event>] buffer buffered events
+    # @yieldparam [Array<FluQ::Event>] buffer buffered events
     # @yieldparam [Array] chunk committable/revertable chunk
     def shift
       yield([])

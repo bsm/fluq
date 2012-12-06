@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.name        = File.basename(__FILE__, '.gemspec')
   s.summary     = "FluQ"
   s.description = "The minimalistic stream processor"
-  s.version     = Fluq::VERSION.dup
+  s.version     = FluQ::VERSION.dup
 
   s.authors     = ["Black Square Media"]
   s.email       = "info@blacksquaremedia.com"

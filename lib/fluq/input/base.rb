@@ -1,4 +1,4 @@
-class Fluq::Input::Base
+class FluQ::Input::Base
 
   # Constructor.
   # @param [Hash] options

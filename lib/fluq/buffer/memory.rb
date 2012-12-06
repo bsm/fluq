@@ -1,10 +1,10 @@
-class Fluq::Buffer::Memory < Fluq::Buffer::Base
+class FluQ::Buffer::Memory < FluQ::Buffer::Base
   extend Forwardable
 
   attr_reader :store
   def_delegators :store, :size
 
-  # @see Fluq::Buffer::Base#initialize
+  # @see FluQ::Buffer::Base#initialize
   def initialize(*)
     super
     @store = []

@@ -1,2 +1,2 @@
-class Fluq::Error < StandardError
+class FluQ::Error < StandardError
 end

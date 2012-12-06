@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Fluq::Handler::Base do
+describe FluQ::Handler::Base do
 
   it { should respond_to(:on_event) }
   its(:config) { should == { pattern: "*" } }
-  its(:name)   { should == "a872495fc91d7aeb4ac6a529d601e65f" }
+  its(:name)   { should == "3p9Z4QyL" }
 
   it 'can have custom names' do
     described_class.new(name: "visitors").name.should == "visitors"

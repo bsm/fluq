@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Fluq::Reactor do
+describe FluQ::Reactor do
 
   let(:reactor) { described_class.new }
   subject { reactor }
@@ -15,23 +15,23 @@ describe Fluq::Reactor do
   its(:inputs)  { should have(:no).actors }
 
   it "should listen to inputs" do
-    server = subject.listen(Fluq::Input::Socket, bind: "tcp://127.0.0.1:7654")
+    server = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
     subject.inputs.should have(1).actors
     server.terminate
   end
 
   it "should register handlers" do
-    h1 = subject.register(Fluq::Handler::Buffered)
-    subject.handlers.should == { "8e35a58704914c320a48ce87a06218c8" => h1 }
+    h1 = subject.register(FluQ::Handler::Buffered)
+    subject.handlers.should == { "nJDpxA8C" => h1 }
 
-    h2 = subject.register(Fluq::Handler::Buffered, name: "specific")
-    subject.handlers.should == { "8e35a58704914c320a48ce87a06218c8" => h1, "specific" => h2 }
+    h2 = subject.register(FluQ::Handler::Buffered, name: "specific")
+    subject.handlers.should == { "nJDpxA8C" => h1, "specific" => h2 }
   end
 
   it "should prevent duplicates" do
-    subject.register(Fluq::Handler::Buffered)
+    subject.register(FluQ::Handler::Buffered)
     lambda {
-      subject.register(Fluq::Handler::Buffered)
+      subject.register(FluQ::Handler::Buffered)
     }.should raise_error(ArgumentError)
   end
 
@@ -45,7 +45,7 @@ describe Fluq::Reactor do
   end
 
   it "should skip not matching events" do
-    h1 = subject.register Fluq::Handler::Base, pattern: "NONE"
+    h1 = subject.register FluQ::Handler::Base, pattern: "NONE"
     wait_for_workers!
     TestHandler.events.should == {}
   end

@@ -1,4 +1,4 @@
-module Fluq::Input
+module FluQ::Input
 end
 
 %w'base socket'.each do |name|

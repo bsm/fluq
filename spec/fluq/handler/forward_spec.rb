@@ -1,16 +1,16 @@
 require 'spec_helper'
 
-describe Fluq::Handler::Forward do
+describe FluQ::Handler::Forward do
 
   let(:event) do
-    Fluq::Event.new("tag", 1313131313, { "a" => "1" })
+    FluQ::Event.new("tag", 1313131313, { "a" => "1" })
   end
 
   subject do
     described_class.new to: ["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"]
   end
 
-  it { should be_a(Fluq::Handler::Buffered) }
+  it { should be_a(FluQ::Handler::Buffered) }
   its(:config) { should == { :pattern=>"*", :flush_interval=>60, :flush_rate=>0, :buffer=>"memory", :to=>["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"] } }
 
   it 'requires URLs to be configured' do
@@ -44,7 +44,7 @@ describe Fluq::Handler::Forward do
   end
 
   it 'should throw errors when all backends fail' do
-    lambda { subject.on_flush([event]) }.should raise_error(Fluq::Handler::Buffered::FlushError)
+    lambda { subject.on_flush([event]) }.should raise_error(FluQ::Handler::Buffered::FlushError)
     subject.should have(2).urls
   end
 

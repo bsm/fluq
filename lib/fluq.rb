@@ -8,7 +8,7 @@ require 'atomic'
 require 'msgpack'
 require 'multi_json'
 
-module Fluq
+module FluQ
   extend self
 
   @@init = @@logger = @@env = @@root = @@reactor = nil
@@ -39,9 +39,9 @@ module Fluq
     @@root ||= Pathname.new(ENV['FLUQ_ROOT'] || ".")
   end
 
-  # @return [Fluq::Reactor] the reactor instance
+  # @return [FluQ::Reactor] the reactor instance
   def reactor
-    @@reactor ||= Fluq::Reactor.new
+    @@reactor ||= FluQ::Reactor.new
   end
 
   # @param [String] url the URL

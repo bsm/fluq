@@ -1,6 +1,6 @@
 require 'digest/md5'
 
-class Fluq::Handler::Base
+class FluQ::Handler::Base
 
   # @attr_reader [String] name unique name
   attr_reader :name
@@ -13,13 +13,13 @@ class Fluq::Handler::Base
   # @option options [String] :pattern tag pattern to match
   # @example
   #
-  #   class MyHandler < Fluq::Handler::Base
+  #   class MyHandler < FluQ::Handler::Base
   #   end
   #   MyHandler.new(pattern: "visits.*")
   #
   def initialize(options = {})
     @config = defaults.merge(options)
-    @name   = config[:name] || Digest::MD5.hexdigest([self.class.name, config[:pattern]].join)
+    @name   = config[:name] || [[Digest::MD5.hexdigest([self.class.name.split, config[:pattern]].join)].pack("H*")].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,8]
   end
 
   # @return [Boolean] true if tag matches
@@ -28,7 +28,7 @@ class Fluq::Handler::Base
   end
 
   # @abstract callback, called on each event
-  # @param [Fluq::Event] the event
+  # @param [FluQ::Event] the event
   def on_event(event)
   end
 

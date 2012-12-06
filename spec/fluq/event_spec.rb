@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Fluq::Event do
+describe FluQ::Event do
 
   subject { described_class.new :"some.tag", "1313131313", "a" => "v1", "b" => "v2" }
 

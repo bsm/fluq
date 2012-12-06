@@ -5,4 +5,4 @@ require 'bundler/setup'
 require 'rspec'
 require 'fluq'
 
-Dir[Fluq.root.join("../support/**/*.rb")].each {|f| require f }
+Dir[FluQ.root.join("../support/**/*.rb")].each {|f| require f }

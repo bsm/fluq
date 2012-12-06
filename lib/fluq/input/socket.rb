@@ -1,6 +1,6 @@
 require 'celluloid/io'
 
-class Fluq::Input::Socket
+class FluQ::Input::Socket
   include Celluloid::IO
 
   # @attr_reader [URI] url the URL
@@ -15,13 +15,13 @@ class Fluq::Input::Socket
   # @raises [URI::InvalidURIError] if invalid URL is given
   # @example Launch a server
   #
-  #   server = Fluq::Server.new(bind: "tcp://localhost:7654")
+  #   server = FluQ::Server.new(bind: "tcp://localhost:7654")
   #   server.run!
   #
   def initialize(options = {})
     url = options[:bind]
     raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless url
-    @url    = Fluq.parse_url(url)
+    @url    = FluQ.parse_url(url)
     @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
     when 'tcp'
@@ -46,7 +46,7 @@ class Fluq::Input::Socket
     def handle_connection(socket)
       loop do
         @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
-          Fluq.reactor.process(tag, timestamp, record)
+          FluQ.reactor.process(tag, timestamp, record)
         end
       end
     rescue EOFError

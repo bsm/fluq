@@ -1,15 +1,15 @@
 require 'spec_helper'
 
-describe Fluq::Handler::Log do
+describe FluQ::Handler::Log do
 
   let(:event) do
-    Fluq::Event.new("my.special.tag", 1313131313, { "a" => "1" })
+    FluQ::Event.new("my.special.tag", 1313131313, { "a" => "1" })
   end
-  let(:root)    { Fluq.root.join("../scenario/log/raw") }
+  let(:root)    { FluQ.root.join("../scenario/log/raw") }
   before        { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
 
-  it { should be_a(Fluq::Handler::Base) }
+  it { should be_a(FluQ::Handler::Base) }
   its(:config) { subject.keys.should =~ [:convert, :path, :pattern, :rewrite] }
 
   it 'should log events' do

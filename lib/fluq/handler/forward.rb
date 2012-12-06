@@ -1,21 +1,21 @@
-class Fluq::Handler::Forward < Fluq::Handler::Buffered
+class FluQ::Handler::Forward < FluQ::Handler::Buffered
 
   attr_reader :urls
 
-  # @see Fluq::Handler::Buffered#initialize
+  # @see FluQ::Handler::Buffered#initialize
   # @option options [Array<String>] urls the URLs to delegate to
   # @raises [ArgumentError] when no URLs provided
   def initialize(*)
     super
-    @urls = Array(config[:to]).map {|url| Fluq.parse_url(url) }
+    @urls = Array(config[:to]).map {|url| FluQ.parse_url(url) }
     raise ArgumentError, "No `to` option given" if urls.empty?
   end
 
-  # @see Fluq::Handler::Buffered#on_flush
+  # @see FluQ::Handler::Buffered#on_flush
   def on_flush(events)
     do_forward events.map(&:encode).join
   rescue Errno::ECONNREFUSED
-    raise Fluq::Handler::Buffered::FlushError.new("Forwarding failed. No backends available.")
+    raise FluQ::Handler::Buffered::FlushError.new("Forwarding failed. No backends available.")
   end
 
   protected
@@ -27,7 +27,7 @@ class Fluq::Handler::Forward < Fluq::Handler::Buffered
         tried.push(url)
         connect(url) {|sock| sock.write(data) }
       rescue Errno::ECONNREFUSED => e
-        Fluq.logger.error "Forwarding failed to backend #{url}: #{e.message}"
+        FluQ.logger.error "Forwarding failed to backend #{url}: #{e.message}"
         raise if urls.empty? # No more URLs to try
         retry
       ensure

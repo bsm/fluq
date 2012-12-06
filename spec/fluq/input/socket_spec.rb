@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Fluq::Input::Socket do
+describe FluQ::Input::Socket do
 
   subject { described_class.new(bind: "tcp://localhost:7654") }
   after   { subject.terminate }

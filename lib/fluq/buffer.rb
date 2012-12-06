@@ -1,4 +1,4 @@
-module Fluq::Buffer
+module FluQ::Buffer
 end
 
 %w'base memory file'.each do |name|
