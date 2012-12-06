@@ -1,6 +1,4 @@
-input :socket do
-  bind 'tcp://localhost:7654'
-end
+import "nested/common.rb"
 
 handler :forward do
   to 'tcp://localhost:8765'

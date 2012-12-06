@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::DSL do
 
   let :subject do
-    described_class.new FluQ.root.join('../scenario/config.rb')
+    described_class.new FluQ.root.join('../scenario/config/test.rb')
   end
 
   it 'should find & configure input' do

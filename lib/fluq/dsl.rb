@@ -4,7 +4,7 @@ class FluQ::DSL
   # @param [String] DSL script file path
   def initialize(path)
     @path = Pathname.new(path)
-    @inputs   = []
+    @inputs = []
     @handlers = []
   end
 
@@ -18,6 +18,11 @@ class FluQ::DSL
   def handler(type, &block)
     klass = FluQ::Handler.const_get(type.to_s.capitalize)
     handlers.push [klass, FluQ::DSL::Options.new(&block).to_hash]
+  end
+
+  # @param [String] relative relative path
+  def import(relative)
+    instance_eval(path.dirname.join(relative).read)
   end
 
   # Starts the components. Handlers first, then inputs.
