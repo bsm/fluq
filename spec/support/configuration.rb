@@ -31,6 +31,14 @@ class TestBufferedHandler < Fluq::Handler::Buffered
   end
 end
 
+# Monkey patch
+Celluloid::SupervisionGroup.class_eval do
+  def clear
+    @members.clear
+  end
+end
+
+
 RSpec.configure do |c|
   c.before do
     TestHandler.events.clear
@@ -38,6 +46,8 @@ RSpec.configure do |c|
     TestBufferedHandler.flushed.clear
   end
   c.after do
+    Fluq.reactor.inputs.finalize
+    Fluq.reactor.inputs.clear
     Fluq.reactor.handlers.clear
   end
 end

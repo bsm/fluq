@@ -36,8 +36,10 @@ class Fluq::Reactor
   end
 
   # Registers a handler
-  # @param [Fluq::Handler::Base] handler
-  def register(handler)
+  # @param [Class<Fluq::Handler::Base>] klass handler class
+  # @param [multiple] args initialization arguments
+  def register(klass, *args)
+    handler = klass.new(*args)
     raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option" if handlers.key?(handler.name)
     handlers[handler.name] = handler
   end

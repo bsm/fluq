@@ -1,6 +1,6 @@
 module Fluq::Input
 end
 
-%w'socket'.each do |name|
+%w'base socket'.each do |name|
   require "fluq/input/#{name}"
 end

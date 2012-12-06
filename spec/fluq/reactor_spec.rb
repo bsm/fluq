@@ -21,28 +21,23 @@ describe Fluq::Reactor do
   end
 
   it "should register handlers" do
-    h1 = Fluq::Handler::Buffered.new
-    h2 = Fluq::Handler::Buffered.new name: "specific"
-
-    subject.register(h1)
+    h1 = subject.register(Fluq::Handler::Buffered)
     subject.handlers.should == { "8e35a58704914c320a48ce87a06218c8" => h1 }
 
-    subject.register(h2)
+    h2 = subject.register(Fluq::Handler::Buffered, name: "specific")
     subject.handlers.should == { "8e35a58704914c320a48ce87a06218c8" => h1, "specific" => h2 }
   end
 
   it "should prevent duplicates" do
-    subject.register(Fluq::Handler::Buffered.new)
+    subject.register(Fluq::Handler::Buffered)
     lambda {
-      subject.register(Fluq::Handler::Buffered.new)
+      subject.register(Fluq::Handler::Buffered)
     }.should raise_error(ArgumentError)
   end
 
   it "should process events" do
-    h1 = TestHandler.new
-    h2 = TestHandler.new pattern: "NONE"
-    subject.register(h1)
-    subject.register(h2)
+    h1 = subject.register(TestHandler)
+    h2 = subject.register(TestHandler, pattern: "NONE")
     subject.process("tag", 1313131313, {}).should be(true)
 
     wait_for_workers!
@@ -50,8 +45,7 @@ describe Fluq::Reactor do
   end
 
   it "should skip not matching events" do
-    h1 = Fluq::Handler::Base.new pattern: "NONE"
-    subject.register(h1)
+    h1 = subject.register Fluq::Handler::Base, pattern: "NONE"
     wait_for_workers!
     TestHandler.events.should == {}
   end
