@@ -26,5 +26,21 @@ class Fluq::Event < Hash
     to_a.to_msgpack
   end
 
+  # @return [Boolean] true if comparable
+  def ==(other)
+    case other
+    when Array
+      to_a == other
+    else
+      super
+    end
+  end
+  alias :eql? :==
+
+  # @return [String] inspection
+  def inspect
+    [tag, timestamp, Hash.new.update(self)].inspect
+  end
+
 end
 

@@ -31,7 +31,8 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
 
   # Rotate the current file
   def rotate!
-    previous = current.swap(open_file)
+    previous = current
+    @current = nil
     previous.close
     archive(previous.path)
   end
@@ -39,9 +40,9 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
 
   # @see Fluq::Buffer::Base#push
   def push(event)
-    current.value.write(event.encode)
+    current.write(event.encode)
     @size.update {|v| v += 1 }
-    rotate! if current.value.pos > FILE_LIMIT
+    rotate! if current.pos > FILE_LIMIT
   end
 
   # @param [Symbol<Pathname>] scope, either `:open` or `:closed`
@@ -59,11 +60,11 @@ class Fluq::Buffer::File < Fluq::Buffer::Base
 
     # @return [Pathname] current file
     def current
-      @current ||= Atomic.new(open_file)
+      @current ||= open_file
     end
 
     def shift
-      rotate! unless current.value.pos == 0
+      rotate! unless current.pos == 0
       glob(:closed).each do |path|
         events = []
         @pac.feed_each(path.read) {|e| events << e }

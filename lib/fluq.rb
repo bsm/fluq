@@ -10,7 +10,13 @@ require 'msgpack'
 module Fluq
   extend self
 
-  @@logger = @@env = @@root = @@reactor = nil
+  @@init = @@logger = @@env = @@root = @@reactor = nil
+
+  def init!
+    @@init ||= begin
+      logger # Init the logger
+    end
+  end
 
   # @return [Logger] the logger instance
   def logger
@@ -59,6 +65,7 @@ module Fluq
       default
     end
 
+  init!
 end
 
 %w'error event reactor handler buffer input dsl'.each do |name|

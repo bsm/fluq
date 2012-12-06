@@ -29,7 +29,7 @@ class Fluq::Handler::Base
 
   # @abstract callback, called on each event
   # @param [Fluq::Event] the event
-  def on_event(tag, timestamp, record)
+  def on_event(event)
   end
 
   protected

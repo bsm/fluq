@@ -1,10 +1,25 @@
 class Fluq::Reactor
 
+  class Fluq::Reactor::Worker
+    include Celluloid
+
+    # @param [Fluq::Handler::Base] handler
+    # @param [Fluq::Event] event
+    def process(handler, event)
+      handler.on_event(event) if handler.match?(event)
+    end
+  end
+
   # attr_reader [Hash] handlers
   attr_reader :handlers
 
-  def initialize
+  # attr_reader [Celluloid::PoolManager] workers
+  attr_reader :workers
+
+  def initialize(*)
+    super
     @handlers = {}
+    @workers  = Fluq::Reactor::Worker.pool
   end
 
   # Registers a handler
@@ -17,9 +32,8 @@ class Fluq::Reactor
   # @see Fluq::Event#initialize
   def process(tag, timestamp, record)
     event = Fluq::Event.new(tag, timestamp, record)
-    handlers.values.map do |instance|
-      instance.on_event(event) || true if instance.match?(event)
-    end.any?
+    handlers.each {|_, handler| @workers.process!(handler, event) }
+    true
   end
 
 end

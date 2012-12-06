@@ -6,7 +6,12 @@ describe Fluq::Reactor do
   subject { reactor }
   after   { reactor.handlers.clear }
 
+  def wait_for_workers!
+    sleep(0.001) while reactor.workers.tasks.any? {|t| [:running, :sleeping].include?(t.status) }
+  end
+
   its(:handlers) { should == {} }
+  its(:workers)  { should be_a(Celluloid) }
 
   it "should register handlers" do
     h1 = Fluq::Handler::Buffered.new
@@ -27,20 +32,21 @@ describe Fluq::Reactor do
   end
 
   it "should process events" do
-    h1 = Fluq::Handler::Base.new
-    h2 = Fluq::Handler::Base.new pattern: "NONE"
+    h1 = TestHandler.new
+    h2 = TestHandler.new pattern: "NONE"
     subject.register(h1)
     subject.register(h2)
-
-    h1.should_receive(:on_event).with(instance_of(Fluq::Event))
-    h2.should_not_receive(:on_event)
     subject.process("tag", 1313131313, {}).should be(true)
+
+    wait_for_workers!
+    TestHandler.events.should == { h1.name => [["tag", 1313131313, {}]] }
   end
 
   it "should skip not matching events" do
     h1 = Fluq::Handler::Base.new pattern: "NONE"
     subject.register(h1)
-    subject.process("tag", 1313131313, {}).should be(false)
+    wait_for_workers!
+    TestHandler.events.should == {}
   end
 
 end

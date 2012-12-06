@@ -17,8 +17,8 @@ describe Fluq::Buffer::File do
 
   it_behaves_like "a buffer"
   it { should be_a(Fluq::Buffer::Base) }
-  its(:current) { subject.value.should be_instance_of(File) }
-  its(:current) { subject.value.path.should match /scenario\/tmp\/buffers\/file_test\/\d{10}\.[0-9a-f]{8}\.open$/  }
+  its(:current) { should be_instance_of(File) }
+  its(:current) { subject.path.should match /scenario\/tmp\/buffers\/file_test\/\d{10}\.[0-9a-f]{8}\.open$/  }
 
   describe "on initialize" do
 
@@ -45,7 +45,7 @@ describe Fluq::Buffer::File do
   end
 
   it "should accept new events" do
-    store = subject.send(:current).value
+    store = subject.send(:current)
     10.times { subject.push(event) }
     subject.rotate!
     store.should be_closed
@@ -64,28 +64,19 @@ describe Fluq::Buffer::File do
 
     lambda { subject.flush }.should change {
       [subject.size, subject.glob(:open).size, subject.glob(:closed).size]
-    }.from([18, 1, 2]).to([0, 1, 0])
+    }.from([18, 1, 2]).to([0, 0, 0])
     events.should have(18).items
   end
 
   it "should rotate files safely" do
-    t1 = Thread.new do
-      sleep(0.01)
-      subject.rotate!
-    end
-    t2 = Thread.new do
-      5.times { subject.push(event) }
-      t1.join
-      5.times { subject.push(event) }
-    end
-    [t1, t2].each(&:join)
+    lambda {
+      t1 = Thread.new { 8.times { subject.rotate! } }
+      t2 = Thread.new { 128.times { subject.push(event) } }
+      [t1, t2].each(&:join)
+    }.should_not raise_error
 
-    open, closed = subject.glob(:open), subject.glob(:closed)
-    open.should have(1).item
-    closed.should have(1).item
-
-    events(open[0]).should have(5).items
-    events(closed[0]).should have(5).items
+    total = (subject.glob(:open) + subject.glob(:closed)).inject(0) {|sum, path| sum + events(path).size }
+    total.should == 128
   end
 
 end
