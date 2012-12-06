@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
-if File.exists?(File.join(File.expand_path('../..', __FILE__), '.git'))
-  fluq_path = File.expand_path('../../lib', __FILE__)
-  $:.unshift(fluq_path)
-end
 
+if File.exists?(File.expand_path('../../lib/fluq.rb', __FILE__))
+  $:.unshift(File.expand_path('../../lib', __FILE__))
+end
 require 'fluq/cli'
 
 FluQ::CLI.run
