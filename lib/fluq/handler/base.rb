@@ -19,7 +19,7 @@ class FluQ::Handler::Base
   #
   def initialize(options = {})
     @config = defaults.merge(options)
-    @name   = config[:name] || [[Digest::MD5.hexdigest([self.class.name.split, config[:pattern]].join)].pack("H*")].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,8]
+    @name   = config[:name] || [Digest::MD5.digest([self.class.name.split, config[:pattern]].join)].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,8]
   end
 
   # @return [Boolean] true if tag matches
