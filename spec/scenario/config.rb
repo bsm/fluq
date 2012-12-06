@@ -3,5 +3,5 @@ input :socket do
 end
 
 handler :forward do
-  urls ['tcp://localhost:8765']
+  to 'tcp://localhost:8765'
 end

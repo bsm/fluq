@@ -23,8 +23,9 @@ class Fluq::DSL
 
   def run
     instance_eval(path.read)
+
     handlers.each do |handler|
-      Fluq::Reactor.register(handler)
+      Fluq.reactor.register(handler)
     end
     inputs.each &:run
   end
