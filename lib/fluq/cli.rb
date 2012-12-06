@@ -27,7 +27,7 @@ module FluQ
       STDOUT.puts "Starting Fluq #{FluQ::VERSION}"
       FluQ::DSL.new(options[:config]).run
 
-      if config[:daemon]
+      if options[:daemon]
         exit!(0) if fork
         Process.setsid
         exit!(0) if fork
@@ -38,9 +38,21 @@ module FluQ
         STDERR.reopen("/dev/null", "w")
       end
 
-      if config[:pidfile]
-        File.open(config[:pidfile], "w") {|f| f.write Process.pid }
-      end
+      @pidfile = options[:pidfile] || FluQ.root.join("tmp", "pids", "#{FluQ.env}.pid")
+      FileUtils.mkdir_p(File.dirname(@pidfile))
+      File.open(@pidfile, "w") {|f| f.write Process.pid }
+
+      Signal.trap("INT", &method(:quit))
+      Signal.trap("TERM", &method(:quit))
+      Signal.trap("QUIT", &method(:quit))
+
+      sleep
+    end
+
+    def quit(*)
+      STDOUT.puts "Shutting down ..."
+      FileUtils.rm_f(@pidfile) if @pidfile
+      exit
     end
 
     protected

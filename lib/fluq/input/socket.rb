@@ -34,6 +34,7 @@ class FluQ::Input::Socket
   # Destructor. Close connections.
   def finalize
     server.close if server
+    FileUtils.rm_f(url.path) if url.scheme == "unix"
   end
 
   # Start the server. Call `#run!` to launch as actor.
