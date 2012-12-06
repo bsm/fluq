@@ -20,9 +20,6 @@ class Fluq::Handler::Base
   def initialize(options = {})
     @config = defaults.merge(options)
     @name   = config[:name] || Digest::MD5.hexdigest([self.class.name, config[:pattern]].join)
-
-    raise ArgumentError, "Handler '#{name}' is already registered. Please provide a unique :name option" if Fluq::Handler.registry.key?(name)
-    Fluq::Handler.registry[name] = self
   end
 
   # @return [Boolean] true if tag matches

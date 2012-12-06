@@ -6,11 +6,6 @@ describe Fluq::Handler::Base do
   its(:config) { should == { pattern: "*" } }
   its(:name)   { should == "a872495fc91d7aeb4ac6a529d601e65f" }
 
-  it 'should register handlers' do
-    lambda { subject }.should change(Fluq::Handler.registry, :size).by(1)
-    Fluq::Handler.registry["a872495fc91d7aeb4ac6a529d601e65f"].should == subject
-  end
-
   it 'can have custom names' do
     described_class.new(name: "visitors").name.should == "visitors"
   end

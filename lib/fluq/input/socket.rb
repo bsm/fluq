@@ -1,8 +1,6 @@
-require 'uri'
-require 'msgpack'
 require 'celluloid/io'
 
-class Fluq::Server
+class Fluq::Input::Socket
   include Celluloid::IO
 
   # @attr_reader [URI] url the URL
@@ -18,9 +16,9 @@ class Fluq::Server
   #   server = Fluq::Server.new("tcp://localhost:7654")
   #   server.run!
   def initialize(url)
-    @url      = Fluq.parse_url(url)
-    @handlers = []
-    @server   = case @url.scheme
+    @url    = Fluq.parse_url(url)
+    @pac    = MessagePack::Unpacker.new
+    @server = case @url.scheme
     when "tcp"
       TCPServer.new(@url.host, @url.port)
     when "unix"
@@ -28,31 +26,22 @@ class Fluq::Server
     end
   end
 
-  # Register a new handler
-  # @param [Fluq::Handler::Base] handler the handler instance
-  def register(handler)
-    @handlers.push(handler)
-  end
-
   # Destructor. Close connections.
   def finalize
-    @server.close if @server
+    server.close if server
   end
 
   # Start the server. Call `#run!` to launch as actor.
   def run
-    loop { handle_connection! @server.accept }
+    loop { handle_connection! server.accept }
   end
 
   private
 
     def handle_connection(socket)
       loop do
-        @unpacker.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
-          event = Fluq::Event.parse(tag, timestamp, record)
-          @handlers.each do |handler|
-            handler.on_event(event.dup) if handler.match?(event.tag)
-          end if event
+        @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
+          Fluq.reactor.process(tag, timestamp, record)
         end
       end
     rescue EOFError

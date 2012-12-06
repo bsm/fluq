@@ -8,7 +8,7 @@ class Fluq::Event < Hash
   def initialize(tag, timestamp, record)
     @tag, @timestamp = tag.to_s, timestamp.to_i
     super()
-    update(record)
+    update(record) if Hash === record
   end
 
   # @return [Time] UTC time
