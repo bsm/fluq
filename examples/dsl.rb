@@ -11,14 +11,14 @@ handler :forward do
   pattern "visits.*"
   to      ["tcp://aggregator-01.remote:23450", "tcp://aggregator-02.remote:23450"]
   buffer  "file"
-  flush_interval 30.seconds
+  flush_interval 30
 end
 
 handler :forward do
   pattern "other.*"
   to      ["tcp://aggregator-02.remote:23450"]
   buffer  "file"
-  flush_interval 5.minutes
+  flush_interval 300
 end
 
 handler :counter do

@@ -4,7 +4,7 @@ class FluQ::DSL::Options
   # @yield options assigment
   def initialize(&block)
     @opts = {}
-    instance_eval(&block)
+    instance_eval(&block) if block
   end
 
   # @return [Hash] options hash
