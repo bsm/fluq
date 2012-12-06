@@ -61,6 +61,6 @@ module Fluq
 
 end
 
-%w'error event reactor handler buffer input'.each do |name|
+%w'error event reactor handler buffer input dsl'.each do |name|
   require "fluq/#{name}"
 end
