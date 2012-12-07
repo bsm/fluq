@@ -21,7 +21,7 @@ module FluQ
 
   # @return [Logger] the logger instance
   def logger
-    @@logger || log_to(root.join("log", "fluq.log"))
+    @@logger || log_to(STDOUT)
   end
 
   # @param [Logger] the logger to use
@@ -57,8 +57,8 @@ module FluQ
 
   # @param [String] path
   def log_to(path)
-    path = Pathname.new(path)
-    FileUtils.mkdir_p(path.dirname)
+    path = Pathname.new(path) if path.is_a?(String)
+    FileUtils.mkdir_p(path.dirname) if path.is_a?(Pathname)
 
     self.logger = ::Logger.new(path)
     logger.level = ::Logger::INFO if env == "production"
@@ -68,6 +68,6 @@ module FluQ
   init!
 end
 
-%w'error event reactor handler buffer input dsl'.each do |name|
+%w'version error mixins event reactor handler buffer input dsl'.each do |name|
   require "fluq/#{name}"
 end

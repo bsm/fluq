@@ -17,6 +17,7 @@ class FluQ::Handler::Buffered < FluQ::Handler::Base
   # @abstract callback, called on each flush
   # @param [Array<Event>] events the events
   def on_flush(events)
+    logger.debug { "#{self.class.name}#on_flush events: #{events.size}" }
   end
 
   protected

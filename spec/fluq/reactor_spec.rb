@@ -21,10 +21,10 @@ describe FluQ::Reactor do
 
   it "should register handlers" do
     h1 = subject.register(FluQ::Handler::Buffered)
-    subject.handlers.should == { "nJDpxA8C" => h1 }
+    subject.handlers.should == { "buffered-M4na42" => h1 }
 
     h2 = subject.register(FluQ::Handler::Buffered, name: "specific")
-    subject.handlers.should == { "nJDpxA8C" => h1, "specific" => h2 }
+    subject.handlers.should == { "buffered-M4na42" => h1, "specific" => h2 }
   end
 
   it "should prevent duplicates" do

@@ -10,19 +10,23 @@ end
 handler :forward do
   pattern "visits.*"
   to      ["tcp://aggregator-01.remote:23450", "tcp://aggregator-02.remote:23450"]
-  buffer  "file"
   flush_interval 30
+  buffer  "file" do
+    path "/var/log/fluq/buffers/forward/visits"
+  end
 end
 
 handler :forward do
   pattern "other.*"
   to      ["tcp://aggregator-02.remote:23450"]
-  buffer  "file"
   flush_interval 300
+  buffer  "file" do
+    path "/var/log/fluq/buffers/forward/other"
+  end
 end
 
-handler :counter do
-  pattern  "*"
-  path     "log/counts"
-  format   "%Y%m%d%H"
+handler :log do
+  pattern "*.*"
+  path    "/var/log/fluq/all/%Y%m/%d/%H/%t.log.gz"
+  rewrite {|tag| tag.split(".")[0] },
 end

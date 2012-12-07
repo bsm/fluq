@@ -13,6 +13,7 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
 
   # @see FluQ::Handler::Buffered#on_flush
   def on_flush(events)
+    super
     do_forward events.map(&:encode).join
   rescue Errno::ECONNREFUSED
     raise FluQ::Handler::Buffered::FlushError.new("Forwarding failed. No backends available.")

@@ -17,10 +17,11 @@ class FluQ::Input::Socket < FluQ::Input::Base
   #
   #   server = FluQ::Server.new(bind: "tcp://localhost:7654")
   #
-  def initialize(options = {})
-    url = options[:bind]
-    raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless url
-    @url    = FluQ.parse_url(url)
+  def initialize(*)
+    super
+
+    raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
+    @url    = FluQ.parse_url(config[:bind])
     @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
     when 'tcp'
@@ -47,7 +48,6 @@ class FluQ::Input::Socket < FluQ::Input::Base
     def handle_connection(socket)
       loop do
         @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
-          raise "STuPID ERROR" if tag == "b.c"
           FluQ.reactor.process(tag, timestamp, record)
         end
       end

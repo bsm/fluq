@@ -7,8 +7,15 @@ describe FluQ::Buffer::Base do
 
   it_behaves_like "a buffer"
   it               { should be_a(described_class) }
+  it               { should be_a(FluQ::Mixins::Loggable) }
   its(:handler)    { should be(handler) }
   its(:timers)     { should be_instance_of(Timers) }
+  its(:interval)   { should be(60) }
+  its(:rate)       { should be(2) }
+
+  it 'should limit rate' do
+    TestBufferedHandler.new(flush_rate: 20_000).send(:buffer).send(:rate).should == 10_000
+  end
 
   it 'should flush when rate is reached' do
     lambda {

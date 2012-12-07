@@ -84,7 +84,7 @@ module FluQ
           end
 
           o.on("-l", "--log FILE", "File to log to") do |val|
-            @options[:env] = val
+            @options[:log] = val
           end
 
           o.on("-v", "--verbose", "Use verbose output") do |val|

@@ -1,6 +1,12 @@
 require 'digest/md5'
 
 class FluQ::Handler::Base
+  include FluQ::Mixins::Loggable
+
+  # @return [String] handler type
+  def self.type
+    @type ||= name.split("::")[-1].downcase
+  end
 
   # @attr_reader [String] name unique name
   attr_reader :name
@@ -19,7 +25,7 @@ class FluQ::Handler::Base
   #
   def initialize(options = {})
     @config = defaults.merge(options)
-    @name   = config[:name] || [Digest::MD5.digest([self.class.name.split, config[:pattern]].join)].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,8]
+    @name   = config[:name] || generate_name
   end
 
   # @return [Boolean] true if tag matches
@@ -37,6 +43,12 @@ class FluQ::Handler::Base
     # Configuration defaults
     def defaults
       { pattern: "*" }
+    end
+
+    # @return [String] generated name
+    def generate_name
+      suffix = [Digest::MD5.digest(config[:pattern])].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,6]
+      [self.class.type, suffix].join("-")
     end
 
 end

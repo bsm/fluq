@@ -15,12 +15,11 @@ class FluQ::DSL::Options
   protected
 
     def method_missing(name, *args, &block)
-      if args[0]
-        @opts[name.to_sym] = args[0]
-      elsif block
-        @opts[name.to_sym] = block
+      value = args[0]
+      if value && block
+        @opts[name.to_sym] = [value, block]
       else
-        super
+        @opts[name.to_sym] = value || block || true
       end
     end
 

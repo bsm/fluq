@@ -3,8 +3,13 @@ require 'spec_helper'
 describe FluQ::Handler::Base do
 
   it { should respond_to(:on_event) }
+  it { should be_a(FluQ::Mixins::Loggable) }
   its(:config) { should == { pattern: "*" } }
-  its(:name)   { should == "3p9Z4QyL" }
+  its(:name)   { should == "base-M4na42" }
+
+  it 'should have a type' do
+    described_class.type.should == "base"
+  end
 
   it 'can have custom names' do
     described_class.new(name: "visitors").name.should == "visitors"
