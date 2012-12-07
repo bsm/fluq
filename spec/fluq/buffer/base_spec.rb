@@ -32,6 +32,11 @@ describe FluQ::Buffer::Base do
     }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
   end
 
+  it 'should not flush without events' do
+    subject.flush
+    TestBufferedHandler.flushed[handler.name].should == []
+  end
+
   describe "flushing" do
 
     it 'should clear flushed events' do
