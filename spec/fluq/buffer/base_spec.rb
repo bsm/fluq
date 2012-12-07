@@ -9,7 +9,7 @@ describe FluQ::Buffer::Base do
   it               { should be_a(described_class) }
   it               { should be_a(FluQ::Mixins::Loggable) }
   its(:handler)    { should be(handler) }
-  its(:timers)     { should be_instance_of(Timers) }
+  its(:timer)      { should be_instance_of(Timers::Timer) }
   its(:interval)   { should be(60) }
   its(:rate)       { should be(2) }
 
@@ -21,14 +21,18 @@ describe FluQ::Buffer::Base do
     lambda {
       subject.push FluQ::Event.new("t", Time.now.to_i, {})
     }.should_not change { TestBufferedHandler.flushed[handler.name] }
+
+    original = subject.send(:timer).time
     lambda {
       subject.push FluQ::Event.new("t", Time.now.to_i, {})
     }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
+    subject.send(:timer).time.should > original # Should reset time too
   end
 
   it 'should flush when interval reached' do
+    subject.push FluQ::Event.new("t", Time.now.to_i, {})
     lambda {
-      subject.send(:timers).each(&:fire)
+      subject.send(:timer).fire
     }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
   end
 

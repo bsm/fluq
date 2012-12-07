@@ -7,6 +7,7 @@ describe FluQ do
   its(:logger) { should be_instance_of(Logger) }
   its(:logger) { subject.level.should == Logger::DEBUG }
   its(:reactor) { should be_instance_of(FluQ::Reactor) }
+  its(:timers) { should be_instance_of(Timers) }
   it { should respond_to(:logger=) }
 
 end

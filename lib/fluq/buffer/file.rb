@@ -63,13 +63,13 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
       glob(:closed).each do |path|
         events = []
         @pac.feed_each(path.read) {|e| events << e }
-        yield(events, path)
+        yield(events, path: path)
       end
     end
 
-    def commit(events, path)
+    def commit(events, opts = {})
       @size.update {|v| v -= events.size }
-      path.unlink
+      opts[:path].unlink if opts[:path]
     end
 
     # @return [File] a newly opened file

@@ -2,8 +2,8 @@ class FluQ::Buffer::Base
   extend Forwardable
   include FluQ::Mixins::Loggable
 
-  attr_reader :handler, :timers, :rate, :interval
-  private     :handler, :timers, :rate, :interval
+  attr_reader :handler, :rate, :timer, :interval
+  private     :handler, :rate, :timer, :interval
 
   # @attr_reader [Hash] config configuration
   attr_reader :config
@@ -12,21 +12,20 @@ class FluQ::Buffer::Base
   # @param [FluQ::Handler::Base] handler
   # @param [Hash] options various options
   def initialize(handler, options = {})
-    @handler    = handler
-    @config     = defaults.merge(options)
-    @interval   = handler.config[:flush_interval].to_i
-    @rate       = handler.config[:flush_rate].to_i
-    @rate       = 10_000 unless (1..10_000).include?(@rate)
-    @timers     = Timers.new
-    @size       = Atomic.new(0)
-
-    timers.every(interval) { flush } if interval > 0
+    @handler  = handler
+    @config   = defaults.merge(options)
+    @interval = handler.config[:flush_interval].to_i
+    @rate     = handler.config[:flush_rate].to_i
+    @rate     = 10_000 unless (1..10_000).include?(@rate)
+    @size     = Atomic.new(0)
+    @timer    = FluQ.timers.every(interval) { flush } if interval > 0
   end
 
   # Flushes the buffer
   def flush
     logger.debug { "#{self.class.name}#flush size: #{size}" }
     shift do |buffer, *args|
+      next if buffer.empty?
       begin
         handler.on_flush(buffer)
         commit(buffer, *args)
@@ -40,7 +39,10 @@ class FluQ::Buffer::Base
   # @param [FluQ::Event] an event to buffer
   def push(event)
     on_event(event)
-    flush unless size < @rate
+    unless size < @rate
+      @timer.reset if @timer
+      flush
+    end
   end
 
   # @abstract
@@ -59,20 +61,21 @@ class FluQ::Buffer::Base
     # @abstract
     # @yieldparam [Array<FluQ::Event>] buffer buffered events
     # @yieldparam [Array] chunk committable/revertable chunk
+    # @yieldparam [Hash] options
     def shift
-      yield([])
+      yield([], {})
     end
 
     # @abstract
     # @param [Array] buffer events that has been flushed
-    # @param [multiple] args optional args
-    def commit(buffer, *args)
+    # @param [Hash] options
+    def commit(buffer, opts = {})
     end
 
     # @abstract
     # @param [Array] buffer events to revert and return to the stack
-    # @param [multiple] args optional args
-    def revert(buffer, *args)
+    # @param [Hash] options
+    def revert(buffer, opts = {})
     end
 
     # @abstract

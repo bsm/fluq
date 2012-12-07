@@ -11,11 +11,12 @@ require 'multi_json'
 module FluQ
   extend self
 
-  @@init = @@logger = @@env = @@root = @@reactor = nil
+  @@init = @@logger = @@env = @@root = @@reactor = @@timers = nil
 
   def init!
     @@init ||= begin
       logger # Init the logger
+      Thread.new { loop { FluQ.timers.fire; sleep(1) } }
     end
   end
 
@@ -42,6 +43,11 @@ module FluQ
   # @return [FluQ::Reactor] the reactor instance
   def reactor
     @@reactor ||= FluQ::Reactor.new
+  end
+
+  # @return [Timers] global timers
+  def timers
+    @@timers ||= Timers.new
   end
 
   # @param [String] url the URL

@@ -26,6 +26,4 @@ describe FluQ::Handler::Base do
     subject.match?("visits.site.1.suffix").should be(true)
   end
 
-  pending 'it should run recurring tasks'
-
 end

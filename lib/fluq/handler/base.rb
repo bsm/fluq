@@ -38,11 +38,6 @@ class FluQ::Handler::Base
   def on_event(event)
   end
 
-  # @param [Integer] period
-  def every(interval, &block)
-    # TODO
-  end
-
   protected
 
     # Configuration defaults
