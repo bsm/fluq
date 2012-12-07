@@ -8,7 +8,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
   def initialize(*)
     super
     @pac  = MessagePack::Unpacker.new
-    @root = FluQ.root.join("tmp/buffers/#{handler.name}/")
+    @root = FluQ.root.join(config[:path])
 
     # Ensure the directory exists
     FileUtils.mkdir_p(root)
@@ -86,6 +86,10 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     # Archive the current file
     def archive(path)
       FileUtils.mv path, path.sub(/\.open$/, ".closed")
+    end
+
+    def defaults
+      super.merge path: "tmp/buffers/#{handler.name}"
     end
 
 end

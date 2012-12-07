@@ -19,6 +19,12 @@ describe FluQ::Buffer::File do
   it { should be_a(FluQ::Buffer::Base) }
   its(:current) { should be_instance_of(File) }
   its(:current) { subject.path.should match /scenario\/tmp\/buffers\/file_test\/\d{10}\.[0-9a-f]{8}\.open$/  }
+  its(:root)    { should be_instance_of(Pathname) }
+  its(:root)    { should == FluQ.root.join("tmp/buffers/file_test") }
+
+  it 'can have a custom root' do
+    described_class.new(handler, path: "log/my_buf").root.should == FluQ.root.join("log/my_buf")
+  end
 
   describe "on initialize" do
 
