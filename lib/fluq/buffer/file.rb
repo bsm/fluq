@@ -26,10 +26,9 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
   # Rotate the current file
   def rotate!
-    previous = current
-    @current = nil
-    previous.close
-    archive(previous.path)
+    previous = current.path
+    current.close
+    archive(previous)
   end
   alias_method :finalize, :rotate!
 
@@ -55,7 +54,8 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # @return [Pathname] current file
     def current
-      @current ||= open_file
+      @current = open_file if @current.nil? || @current.closed?
+      @current
     end
 
     def shift

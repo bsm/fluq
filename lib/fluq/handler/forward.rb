@@ -15,8 +15,6 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
   def on_flush(events)
     super
     do_forward events.map(&:encode).join
-  rescue Errno::ECONNREFUSED
-    raise FluQ::Handler::Buffered::FlushError.new("Forwarding failed. No backends available.")
   end
 
   protected
@@ -27,9 +25,9 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
         url = urls.shift
         tried.push(url)
         connect(url) {|sock| sock.write(data) }
-      rescue Errno::ECONNREFUSED => e
+      rescue Errno::ECONNREFUSED, IOError, EOFError => e
         FluQ.logger.error "Forwarding failed to backend #{url}: #{e.message}"
-        raise if urls.empty? # No more URLs to try
+        raise FluQ::Handler::Buffered::FlushError, "Forwarding failed. No backends available." if urls.empty? # No more URLs to try
         retry
       ensure
         urls.push(*tried)

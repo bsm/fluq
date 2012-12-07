@@ -23,6 +23,7 @@ describe FluQ::Buffer::Base do
     }.should_not change { TestBufferedHandler.flushed[handler.name] }
 
     original = subject.send(:timer).time
+    sleep(0.01)
     lambda {
       subject.push FluQ::Event.new("t", Time.now.to_i, {})
     }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
