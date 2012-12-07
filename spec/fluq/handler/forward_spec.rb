@@ -11,7 +11,7 @@ describe FluQ::Handler::Forward do
   end
 
   it { should be_a(FluQ::Handler::Buffered) }
-  its(:config) { should == { :pattern=>"*", :flush_interval=>60, :flush_rate=>0, :buffer=>"memory", :to=>["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"] } }
+  its(:config) { should == { pattern: "*", flush_interval: 60, flush_rate: 0, buffer: "memory", buffer_options: {}, to: ["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"] } }
 
   it 'requires URLs to be configured' do
     lambda { described_class.new }.should raise_error(ArgumentError)

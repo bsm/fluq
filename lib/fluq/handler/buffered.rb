@@ -6,7 +6,7 @@ class FluQ::Handler::Buffered < FluQ::Handler::Base
   # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self)
+    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self, config[:buffer_options] || {})
   end
 
   # @see FluQ::Handler::Base#on_event
@@ -24,7 +24,7 @@ class FluQ::Handler::Buffered < FluQ::Handler::Base
 
     # Configuration defaults
     def defaults
-      super.merge flush_interval: 60, flush_rate: 0, buffer: 'memory'
+      super.merge flush_interval: 60, flush_rate: 0, buffer: 'memory', buffer_options: {}
     end
 
 end
