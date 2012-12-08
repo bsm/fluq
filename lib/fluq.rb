@@ -66,7 +66,7 @@ module FluQ
     path = Pathname.new(path) if path.is_a?(String)
     FileUtils.mkdir_p(path.dirname) if path.is_a?(Pathname)
 
-    self.logger = ::Logger.new(path)
+    self.logger  = ::Logger.new(path.to_s)
     logger.level = ::Logger::INFO if env == "production"
     logger
   end
