@@ -1,95 +1,58 @@
 class FluQ::Buffer::File < FluQ::Buffer::Base
-  FILE_LIMIT = 128 * 1024 * 1024 # 128M
 
-  # @attr_reader [Pathname] buffer root
-  attr_reader :root
+  # @attr_reader [Celluloid::SupervisionGroup] supervisor
+  attr_reader :supervisor
 
   # @see FluQ::Buffer::Base#initialize
   def initialize(*)
     super
-    @pac  = MessagePack::Unpacker.new
-    @root = FluQ.root.join(config[:path])
-
-    # Ensure the directory exists
-    FileUtils.mkdir_p(root)
+    @pac = MessagePack::Unpacker.new
+    @supervisor = FluQ::Buffer::File::Writer.supervise(config[:path], config[:max_size].to_i)
 
     # Archive all open files
-    glob(:open).each do |path|
-      archive(path)
+    writer.glob :open do |path|
+      writer.archive(path)
     end
 
     # Count records from orphaned files
-    glob(:closed).each do |path|
+    writer.glob :closed do |path|
       @pac.feed_each(path.read) { @size.update {|v| v += 1 } }
     end
   end
 
-  # Rotate the current file
-  def rotate!
-    previous = current.path
-    current.close
-    archive(previous)
-  end
-  alias_method :finalize, :rotate!
-
-  # @param [Symbol<Pathname>] scope, either `:open` or `:closed`
-  # @return [Array<Pathname>] scoped paths
-  def glob(scope)
-    Pathname.glob(scopes[scope]).sort
-  end
-
   protected
+
+  # @return [FluQ::Buffer::File::Writer] thread-safe buffer writer
+    def writer
+      @writer ||= supervisor.actors.first
+    end
 
     # @see FluQ::Buffer::Base#on_event
     def on_event(event)
-      current.write(event.encode)
+      writer.write!(event) # Async call
       @size.update {|v| v += 1 }
-      rotate! if current.pos > FILE_LIMIT
-    end
-
-    # @return [Hash] file scopes
-    def scopes
-      @scopes ||= { open: root.join("*.*.open").to_s, closed: root.join("*.*.closed").to_s }
-    end
-
-    # @return [Pathname] current file
-    def current
-      @current = open_file if @current.nil? || @current.closed?
-      @current
     end
 
     def shift
-      rotate! unless current.pos == 0
-      glob(:closed).each do |path|
+      writer.rotate!
+      writer.glob :closed do |path|
         events = []
         @pac.feed_each(path.read) {|e| events << e }
-        yield(events, path: path)
+        yield(events, path)
       end
     end
 
-    def commit(events, opts = {})
+    def commit(events, path)
       @size.update {|v| v -= events.size }
-      opts[:path].unlink if opts[:path]
-    end
-
-    # @return [File] a newly opened file
-    def open_file
-      path = nil
-      until path && !path.exist?
-        time = Time.now.utc.strftime("%Y%m%d%H")
-        hash = SecureRandom.hex(4)
-        path = root.join("#{time}.#{hash}.open")
-      end
-      File.open(path, "wb")
-    end
-
-    # Archive the current file
-    def archive(path)
-      FileUtils.mv path, path.sub(/\.open$/, ".closed")
+      path.unlink
     end
 
     def defaults
-      super.merge path: "tmp/buffers/#{handler.name}"
+      super.merge path: "tmp/buffers/#{handler.name}", max_size: (128 * 1024 * 1024)
     end
 
+end
+
+%w'writer'.each do |name|
+  require "fluq/buffer/file/#{name}"
 end

@@ -2,12 +2,18 @@ require 'spec_helper'
 
 describe FluQ::Buffer::File do
 
-  let(:handler) { FluQ::Handler::Buffered.new buffer: "file", name: "file_test" }
+  let(:handler) { FluQ::Handler::Buffered.new name: "file_test", buffer: "file" }
   let(:root)    { FluQ.root.join("../scenario/tmp/buffers/file_test") }
   let(:event)   { FluQ::Event.new("tag", 1313131313, { "a" => "1" }) }
+  let(:writer)  { subject.send :writer }
 
   subject       { handler.send(:buffer) }
   before        { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
+
+  # Force file rotation
+  def rotate!
+    writer.send(:rotate)
+  end
 
   def events(path)
     acc = []
@@ -17,23 +23,11 @@ describe FluQ::Buffer::File do
 
   it_behaves_like "a buffer"
   it { should be_a(FluQ::Buffer::Base) }
-  its(:current) { should be_instance_of(File) }
-  its(:current) { subject.path.should match /scenario\/tmp\/buffers\/file_test\/\d{10}\.[0-9a-f]{8}\.open$/  }
-  its(:root)    { should be_instance_of(Pathname) }
-  its(:root)    { should == FluQ.root.join("tmp/buffers/file_test") }
-
-  it 'can have a custom root' do
-    described_class.new(handler, path: "log/my_buf").root.should == FluQ.root.join("log/my_buf")
-  end
+  its(:supervisor) { should be_a(Celluloid::SupervisionGroup) }
+  its(:writer) { should be_a(described_class::Writer) }
+  its(:config) { should == { path: "tmp/buffers/file_test", max_size: 134217728 } }
 
   describe "on initialize" do
-
-    it "should create relevant paths" do
-      FileUtils.rm_rf root
-      lambda { subject }.should change {
-        FluQ.root.join("../scenario/tmp/buffers/file_test").directory?
-      }.to(true)
-    end
 
     it "should close open files" do
       root.join("2012121212.abcd.open").open("wb") {|f| f.write(event.encode) }
@@ -51,37 +45,37 @@ describe FluQ::Buffer::File do
   end
 
   it "should accept new events" do
-    store = subject.send(:current)
     10.times { subject.push(event) }
-    subject.rotate!
-    store.should be_closed
-    events(store.path.sub(".open", ".closed")).should have(10).items
+    rotate!
+    events(Dir[root.join("*")].first).should have(10).items
   end
 
   it "should flush safely" do
     5.times { subject.push(event) }
-    subject.rotate!
+    rotate!
     6.times { subject.push(event) }
-    subject.rotate!
+    rotate!
     7.times { subject.push(event) }
 
     events = []
     handler.should_receive(:on_flush).exactly(3).times.with {|e| events += e }
 
     lambda { subject.flush }.should change {
-      [subject.size, subject.glob(:open).size, subject.glob(:closed).size]
+      [subject, writer.glob(:open), writer.glob(:closed)].map(&:size)
     }.from([18, 1, 2]).to([0, 0, 0])
     events.should have(18).items
   end
 
   it "should rotate files safely" do
     lambda {
-      t1 = Thread.new { 8.times { subject.rotate! } }
-      t2 = Thread.new { 128.times { subject.push(event) } }
-      [t1, t2].each(&:join)
+      t1 = Thread.new { 64.times { subject.push(event) } }
+      t2 = Thread.new { 8.times { rotate! } }
+      t3 = Thread.new { 64.times { subject.push(event) } }
+      [t1, t2, t3].each(&:join)
     }.should_not raise_error
+    sleep Celluloid::TIMER_QUANTUM
 
-    total = (subject.glob(:open) + subject.glob(:closed)).inject(0) {|sum, path| sum + events(path).size }
+    total = (writer.glob(:open) + writer.glob(:closed)).map {|path| events(path).size }.inject(0, :+)
     total.should == 128
   end
 
