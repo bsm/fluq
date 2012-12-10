@@ -5,7 +5,7 @@ module FluQ::Testing
 
   def wait_until(opts = {}, &block)
     tick = opts[:tick] || 0.01
-    max  = opts[:max]  || (tick * 10)
+    max  = opts[:max]  || (tick * 50)
     Timeout.timeout(max) { sleep(tick) until block.call }
   rescue Timeout::Error
   end
