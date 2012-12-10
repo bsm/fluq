@@ -30,3 +30,17 @@ class FluQ::Handler::TestBuffered < FluQ::Handler::Buffered
     @flushed << events
   end
 end
+
+module Celluloid
+
+  def __wait__!
+    Actor.all.each do |actor|
+      begin
+        sleep 0.001 while actor.tasks.any? {|t| t.status == :running }
+      rescue DeadActorError
+      end
+    end
+    sleep(0.05)
+  end
+
+end
