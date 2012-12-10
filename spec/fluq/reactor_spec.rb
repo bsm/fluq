@@ -29,21 +29,22 @@ describe FluQ::Reactor do
   end
 
   it "should process events" do
-    h1 = subject.register(TestHandler)
-    h2 = subject.register(TestHandler, pattern: "NONE")
+    h1 = subject.register(FluQ::Handler::Test)
+    h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
     subject.process("tag", 1313131313, {}).should be(true)
 
     wait_for_tasks_to_finish!
 
-    TestHandler.events.should == { h1.name => [["tag", 1313131313, {}]] }
+    h1.events.should == [["tag", 1313131313, {}]]
+    h2.events.should == []
   end
 
   it "should skip not matching events" do
-    h1 = subject.register FluQ::Handler::Base, pattern: "NONE"
+    h1 = subject.register FluQ::Handler::Test, pattern: "NONE"
 
     wait_for_tasks_to_finish!
 
-    TestHandler.events.should == {}
+    h1.events.should == []
   end
 
 end

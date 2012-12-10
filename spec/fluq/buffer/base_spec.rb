@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Buffer::Base do
 
-  let(:handler) { TestBufferedHandler.new flush_rate: 2, buffer: 'memory' }
+  let(:handler) { FluQ::Handler::TestBuffered.new flush_rate: 2, buffer: 'memory' }
   subject       { handler.send(:buffer) }
 
   it_behaves_like "a buffer"
@@ -14,19 +14,19 @@ describe FluQ::Buffer::Base do
   its(:rate)       { should be(2) }
 
   it 'should limit rate' do
-    TestBufferedHandler.new(flush_rate: 20_000).send(:buffer).send(:rate).should == 10_000
+    FluQ::Handler::TestBuffered.new(flush_rate: 20_000).send(:buffer).send(:rate).should == 10_000
   end
 
   it 'should flush when rate is reached' do
     lambda {
       subject.push FluQ::Event.new("t", Time.now.to_i, {})
-    }.should_not change { TestBufferedHandler.flushed[handler.name] }
+    }.should_not change { handler.flushed }
 
     original = subject.send(:timer).time
     sleep(0.01)
     lambda {
       subject.push FluQ::Event.new("t", Time.now.to_i, {})
-    }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
+    }.should change { handler.flushed.size }.by(1)
     subject.send(:timer).time.should > original # Should reset time too
   end
 
@@ -34,12 +34,13 @@ describe FluQ::Buffer::Base do
     subject.push FluQ::Event.new("t", Time.now.to_i, {})
     lambda {
       subject.send(:timer).fire
-    }.should change { TestBufferedHandler.flushed[handler.name].size }.by(1)
+    }.should change { handler.flushed.size }.by(1)
   end
 
   it 'should not flush without events' do
-    subject.flush
-    TestBufferedHandler.flushed[handler.name].should == []
+    lambda {
+      subject.flush
+    }.should_not change { handler.flushed }
   end
 
   describe "flushing" do
