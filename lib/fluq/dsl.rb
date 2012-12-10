@@ -8,17 +8,18 @@ class FluQ::DSL
     @path     = Pathname.new(path)
     @inputs   = []
     @handlers = []
+    $LOAD_PATH.unshift FluQ.root.join('lib')
   end
 
-  # @param [Symbol] input type, e.g. :socket
-  def input(type, &block)
-    klass = FluQ::Input.const_get(type.to_s.capitalize)
+  # @param [Array<Symbol>] input type path, e.g. :socket
+  def input(*type, &block)
+    klass = constantize(:input, *type)
     inputs.push [klass, FluQ::DSL::Options.new(&block).to_hash]
   end
 
-  # @param [Symbol] handler type, e.g. :forward, :counter
-  def handler(type, &block)
-    klass = FluQ::Handler.const_get(type.to_s.capitalize)
+  # @param [Array<Symbol>] handler type path, e.g. :forward, :counter
+  def handler(*type, &block)
+    klass = constantize(:handler, *type)
     handlers.push [klass, FluQ::DSL::Options.new(&block).to_hash]
   end
 
@@ -33,6 +34,14 @@ class FluQ::DSL
     handlers.each {|klass, options| reactor.register(klass, options) }
     inputs.each   {|klass, options| reactor.listen(klass, options) }
   end
+
+  protected
+
+    def constantize(*path)
+      require([:fluq, *path].join('/'))
+      names = path.map {|p| p.to_s.split('_').map(&:capitalize).join }
+      names.inject(FluQ) {|klass, name| klass.const_get(name) }
+    end
 
 end
 

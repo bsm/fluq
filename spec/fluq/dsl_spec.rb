@@ -22,10 +22,21 @@ describe FluQ::DSL do
     reactor.should have(:no).handlers
   end
 
+  it 'should find namespaced handler' do
+    subject.handler(:custom, :test_handler) do
+      to 'tcp://localhost:87654'
+    end
+    subject.should have(1).handlers
+  end
+
   it 'should evaluate configuration' do
     subject.run
     reactor.inputs.should have(1).actors
     reactor.should have(1).handlers
+  end
+
+  it 'should add to load path' do
+    $LOAD_PATH.should include(FluQ.root.join('lib'))
   end
 
 end
