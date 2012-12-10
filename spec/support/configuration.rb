@@ -17,6 +17,7 @@ module FluQ::SpecHelpers
       rescue Celluloid::DeadActorError
       end
     end
+    sleep Celluloid::TIMER_QUANTUM
   end
 
 end
