@@ -24,26 +24,11 @@ module FluQ
       ENV["FLUQ_ENV"] = options[:env] if options[:env]
 
       require 'fluq'
-      STDOUT.puts "Starting Fluq #{FluQ::VERSION}"
+      STDOUT.puts "Starting FluQ #{FluQ::VERSION}"
       FluQ::DSL.new(FluQ::Reactor.new, options[:config]).run
 
-      if options[:daemon]
-        exit!(0) if fork
-        Process.setsid
-        exit!(0) if fork
-        Dir::chdir("/")
-        File::umask(0)
-        STDIN.reopen("/dev/null")
-        STDOUT.reopen("/dev/null", "w")
-        STDERR.reopen("/dev/null", "w")
-      end
-
-      if options[:log]
-        Fluq.log_to(options[:log])
-      end
-
       if options[:verbose]
-        Fluq.logger.level = ::Logger::DEBUG
+        FluQ.logger.level = ::Logger::DEBUG
       end
 
       @pidfile = options[:pidfile] || FluQ.root.join("tmp", "pids", "#{FluQ.env}.pid")
@@ -83,19 +68,11 @@ module FluQ
             @options[:env] = val
           end
 
-          o.on("-l", "--log FILE", "File to log to") do |val|
-            @options[:log] = val
-          end
-
           o.on("-v", "--verbose", "Use verbose output") do |val|
             @options[:verbose] = true
           end
 
           o.separator ""
-
-          o.on "-d", "--daemonize", "Run as a daemon" do
-            @options[:daemon] = true
-          end
 
           o.on "--pidfile FILE", "Path to pidfile, defaults to tmp/pids/ENVIRONMENT.pid" do |val|
             @options[:pidfile] = val
