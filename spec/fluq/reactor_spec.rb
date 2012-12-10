@@ -33,17 +33,14 @@ describe FluQ::Reactor do
     h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
     subject.process("tag", 1313131313, {}).should be(true)
 
-    Celluloid.__wait__!
-
+    FluQ::Testing.wait_until { h1.events.size > 0 }
     h1.events.should == [["tag", 1313131313, {}]]
     h2.events.should == []
   end
 
   it "should skip not matching events" do
     h1 = subject.register FluQ::Handler::Test, pattern: "NONE"
-
-    Celluloid.__wait__!
-
+    FluQ::Testing.wait_until { false }
     h1.events.should == []
   end
 

@@ -1,5 +1,16 @@
 require 'fluq'
 
+module FluQ::Testing
+  extend self
+
+  def wait_until(opts = {}, &block)
+    tick = opts[:tick] || 0.01
+    max  = opts[:max]  || (tick * 10)
+    Timeout.timeout(max) { sleep(tick) until block.call }
+  rescue Timeout::Error
+  end
+end
+
 class FluQ::Handler::Test < FluQ::Handler::Base
   attr_reader :events
 
@@ -29,18 +40,4 @@ class FluQ::Handler::TestBuffered < FluQ::Handler::Buffered
   def on_flush(events)
     @flushed << events
   end
-end
-
-module Celluloid
-
-  def __wait__!
-    Actor.all.each do |actor|
-      begin
-        sleep 0.001 while actor.tasks.any? {|t| t.status == :running }
-      rescue DeadActorError
-      end
-    end
-    sleep(0.05)
-  end
-
 end

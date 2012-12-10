@@ -13,6 +13,10 @@ describe FluQ::Buffer::File::Writer do
     acc
   end
 
+  def total_events
+    (subject.glob(:open) + subject.glob(:closed)).map {|n| read(n).size }.inject(0, :+)
+  end
+
   it { should be_a(Celluloid) }
   its(:root)    { should == path }
   its(:current) { should be_instance_of(File) }
@@ -78,10 +82,9 @@ describe FluQ::Buffer::File::Writer do
       t3 = Thread.new { 64.times { subject.write!(event) } }
       [t1, t2, t3].each(&:join)
     }.should_not raise_error
-    Celluloid.__wait__!
 
-    total = (subject.glob(:open) + subject.glob(:closed)).map {|n| read(n).size }.inject(0, :+)
-    total.should == 128
+    FluQ::Testing.wait_until(tick: 0.05) { total_events == 128 }
+    total_events.should == 128
   end
 
 end
