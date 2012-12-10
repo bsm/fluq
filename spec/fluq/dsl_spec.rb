@@ -36,8 +36,4 @@ describe FluQ::DSL do
     reactor.should have(1).handlers
   end
 
-  it 'should add to load path' do
-    $LOAD_PATH.should include(FluQ.root.join('lib'))
-  end
-
 end

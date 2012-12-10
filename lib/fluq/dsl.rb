@@ -8,7 +8,6 @@ class FluQ::DSL
     @path     = Pathname.new(path)
     @inputs   = []
     @handlers = []
-    $LOAD_PATH.unshift FluQ.root.join('lib')
   end
 
   # @param [Array<Symbol>] input type path, e.g. :socket

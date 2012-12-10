@@ -39,6 +39,8 @@ module FluQ
       Signal.trap("TERM", &method(:quit))
       Signal.trap("QUIT", &method(:quit))
 
+      $LOAD_PATH.unshift FluQ.root.join('lib')
+
       sleep
     end
 
