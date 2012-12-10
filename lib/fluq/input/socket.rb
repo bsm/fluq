@@ -40,7 +40,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   protected
 
-    # @return [Array] protocols supported protocols
+    # @return [Array] supported protocols
     def protocols
       ["tcp", "unix"]
     end

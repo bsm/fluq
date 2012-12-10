@@ -34,7 +34,7 @@ module FluQ
       @timers = Timers.new
 
       # Start background thread to fire timers
-      @scheduler = Thread.new { loop { timers.wait } }
+      @scheduler = Thread.new { loop { timers.empty? ? sleep(10) : timers.wait } }
     end
     protected :init!
 

@@ -19,7 +19,7 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
 
   protected
 
-    # @return [Array] protocols supported protocols
+    # @return [Array] supported protocols
     def protocols
       ["tcp", "uniq"]
     end
