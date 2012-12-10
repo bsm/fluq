@@ -6,5 +6,4 @@ require 'rspec'
 require 'fluq'
 
 Dir[FluQ.root.join("../support/**/*.rb")].each {|f| require f }
-
-FluQ.log_to(FluQ.root.join("log", "fluq.log"))
+Celluloid.logger = Logger.new(FluQ.root.join("log", "fluq.log").to_s)

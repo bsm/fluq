@@ -23,16 +23,18 @@ class MockTCPServer
   end
 
   def wait
-    Timeout.timeout(0.005) do
+    Timeout.timeout(0.05) do
       sleep(0.001) while @thread.alive?
     end
   rescue Timeout::Error
   end
 
   def stop
-    @server.close unless @server.closed?
-    @thread.exit if @thread.alive?
-    sleep(0.001) while @thread.alive?
+    @server.close unless @server.nil? || @server.closed?
+    while @thread.alive?
+      @thread.kill
+      sleep(0.05)
+    end
   end
 
   private

@@ -7,7 +7,7 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
   # @raises [ArgumentError] when no URLs provided
   def initialize(*)
     super
-    @urls = Array(config[:to]).map {|url| FluQ.parse_url(url) }
+    @urls = Array(config[:to]).map {|url| FluQ::URL.parse(url, ["tcp", "unix"]) }
     raise ArgumentError, "No `to` option given" if urls.empty?
   end
 

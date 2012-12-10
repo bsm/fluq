@@ -1,13 +1,17 @@
 class FluQ::Input::Base
   include FluQ::Mixins::Loggable
 
+  # @attr_reader [FluQ::Reactor] reactor
+  attr_reader :reactor
+
   # @attr_reader [Hash] config
   attr_reader :config
 
   # @param [Hash] options varous configuration options
-  def initialize(options = {})
+  def initialize(reactor, options = {})
     super()
-    @config = defaults.merge(options)
+    @reactor = reactor
+    @config  = defaults.merge(options)
   end
 
   protected

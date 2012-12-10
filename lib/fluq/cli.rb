@@ -25,7 +25,7 @@ module FluQ
 
       require 'fluq'
       STDOUT.puts "Starting Fluq #{FluQ::VERSION}"
-      FluQ::DSL.new(options[:config]).run
+      FluQ::DSL.new(FluQ::Reactor.new, options[:config]).run
 
       if options[:daemon]
         exit!(0) if fork

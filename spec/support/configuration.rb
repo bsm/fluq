@@ -1,10 +1,15 @@
 require 'celluloid/rspec'
 
-RSpec.configure do |c|
-  c.after do
-    # FluQ.reactor.inputs.finalize
-    FluQ.reactor.inputs.__reset__
-    FluQ.reactor.handlers.clear
+module FluQ::SpecHelpers
+
+  def self.included(base)
+    super
+    base.let(:reactor) { @reactor = FluQ::Reactor.new }
   end
+
 end
 
+RSpec.configure do |c|
+  c.include FluQ::SpecHelpers
+  c.after { @reactor.terminate if @reactor }
+end

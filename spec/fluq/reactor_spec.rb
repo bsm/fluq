@@ -1,13 +1,7 @@
 require 'spec_helper'
 
 describe FluQ::Reactor do
-
-  let(:reactor) { described_class.new }
   subject { reactor }
-
-  def wait_for_workers!
-    sleep(0.001) while reactor.workers.tasks.any? {|t| [:running, :sleeping].include?(t.status) }
-  end
 
   its(:handlers) { should == {} }
   its(:workers)  { should be_a(Celluloid) }
@@ -39,13 +33,13 @@ describe FluQ::Reactor do
     h2 = subject.register(TestHandler, pattern: "NONE")
     subject.process("tag", 1313131313, {}).should be(true)
 
-    wait_for_workers!
+    sleep(Celluloid::TIMER_QUANTUM)
     TestHandler.events.should == { h1.name => [["tag", 1313131313, {}]] }
   end
 
   it "should skip not matching events" do
     h1 = subject.register FluQ::Handler::Base, pattern: "NONE"
-    wait_for_workers!
+    sleep(Celluloid::TIMER_QUANTUM)
     TestHandler.events.should == {}
   end
 

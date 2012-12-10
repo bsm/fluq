@@ -31,7 +31,7 @@ class FluQ::Reactor
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
     FluQ.logger.info "Listening to #{klass.name}"
-    member = inputs.supervise(klass, *args)
+    member = inputs.supervise(klass, self, *args)
     member.actor
   end
 
@@ -48,8 +48,19 @@ class FluQ::Reactor
   # @see FluQ::Event#initialize
   def process(tag, timestamp, record)
     event = FluQ::Event.new(tag, timestamp, record)
-    handlers.each {|_, handler| @workers.process!(handler, event) }
+    handlers.each {|_, handler| @workers.async.process(handler, event) }
     true
+  end
+
+  # TODO: Remove once Reactor is a supervisor
+  def terminate
+    finalize
+  end
+
+  # Finalizer
+  def finalize
+    @inputs.finalize
+    @workers.finalize
   end
 
 end

@@ -1,10 +1,12 @@
 class FluQ::DSL
-  attr_reader :path, :inputs, :handlers
+  attr_reader :path, :reactor, :inputs, :handlers
 
+  # @param [FluQ::Reactor] reactor
   # @param [String] DSL script file path
-  def initialize(path)
-    @path = Pathname.new(path)
-    @inputs = []
+  def initialize(reactor, path)
+    @reactor  = reactor
+    @path     = Pathname.new(path)
+    @inputs   = []
     @handlers = []
   end
 
@@ -28,12 +30,11 @@ class FluQ::DSL
   # Starts the components. Handlers first, then inputs.
   def run
     instance_eval(path.read)
-    handlers.each {|klass, options| FluQ.reactor.register(klass, options) }
-    inputs.each   {|klass, options| FluQ.reactor.listen(klass, options) }
+    handlers.each {|klass, options| reactor.register(klass, options) }
+    inputs.each   {|klass, options| reactor.listen(klass, options) }
   end
 
 end
-
 
 %w'options'.each do |name|
   require "fluq/dsl/#{name}"

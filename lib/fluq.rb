@@ -9,71 +9,39 @@ require 'msgpack'
 require 'multi_json'
 
 module FluQ
-  extend self
+  class << self
 
-  @@init = @@logger = @@env = @@root = @@reactor = @@timers = nil
+    # @attr_reader [String] env runtime environemnt
+    # @attr_reader [Pathname] root project root
+    # @attr_reader [Timers] global timers
+    attr_reader :env, :root, :timers
 
-  def init!
-    @@init ||= begin
-      logger # Init the logger
-      Thread.new { loop { FluQ.timers.fire; sleep(1) } }
+    # Returns Celluloid's logger. Please use `Celluloid.logger = ...` to override.
+    # @return [Logger] the thread-safe logger instance
+    def logger
+      Celluloid.logger
     end
-  end
 
-  # @return [Logger] the logger instance
-  def logger
-    @@logger || log_to(STDOUT)
-  end
+    def init!
+      # Detect environment
+      @env  = ENV['FLUQ_ENV'] || "development"
 
-  # @param [Logger] the logger to use
-  def logger=(value)
-    Celluloid.logger = @@logger = value
-  end
+      # Set root path
+      @root = Pathname.new(ENV['FLUQ_ROOT'] || ".")
 
-  # @param [String] the environment
-  def env
-    @@env ||= ENV['FLUQ_ENV'] || "development"
-  end
+      # Initialize timers
+      @timers = Timers.new
 
-  # @param [Pathname] the root
-  def root
-    @@root ||= Pathname.new(ENV['FLUQ_ROOT'] || ".")
-  end
-
-  # @return [FluQ::Reactor] the reactor instance
-  def reactor
-    @@reactor ||= FluQ::Reactor.new
-  end
-
-  # @return [Timers] global timers
-  def timers
-    @@timers ||= Timers.new
-  end
-
-  # @param [String] url the URL
-  def parse_url(url)
-    url = URI.parse(url)
-    case url.scheme
-    when "tcp", "unix"
-      url
-    else
-      raise URI::InvalidURIError, "Invalid URI scheme, only 'tcp' and 'unix' sockets are allowed"
+      # Start background thread to fire timers
+      Thread.new { loop { timers.fire; sleep(1) } }
     end
-  end
+    protected :init!
 
-  # @param [String] path
-  def log_to(path)
-    path = Pathname.new(path) if path.is_a?(String)
-    FileUtils.mkdir_p(path.dirname) if path.is_a?(Pathname)
-
-    self.logger  = ::Logger.new(path.to_s)
-    logger.level = ::Logger::INFO if env == "production"
-    logger
   end
 
   init!
 end
 
-%w'version error mixins event reactor handler buffer input dsl'.each do |name|
+%w'version error mixins url event reactor handler buffer input dsl'.each do |name|
   require "fluq/#{name}"
 end

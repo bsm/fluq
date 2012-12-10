@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::DSL do
 
   let :subject do
-    described_class.new FluQ.root.join('../scenario/config/test.rb')
+    described_class.new reactor, FluQ.root.join('../scenario/config/test.rb')
   end
 
   it 'should find & configure input' do
@@ -11,7 +11,7 @@ describe FluQ::DSL do
       bind 'tcp://localhost:76543'
     end
     subject.should have(1).inputs
-    FluQ.reactor.inputs.should have(:no).actors
+    reactor.inputs.should have(:no).actors
   end
 
   it 'should find & configure handler' do
@@ -19,13 +19,13 @@ describe FluQ::DSL do
       to 'tcp://localhost:87654'
     end
     subject.should have(1).handlers
-    FluQ.reactor.should have(:no).handlers
+    reactor.should have(:no).handlers
   end
 
   it 'should evaluate configuration' do
     subject.run
-    FluQ.reactor.inputs.should have(1).actors
-    FluQ.reactor.should have(1).handlers
+    reactor.inputs.should have(1).actors
+    reactor.should have(1).handlers
   end
 
 end

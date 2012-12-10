@@ -15,13 +15,13 @@ class FluQ::Input::Socket < FluQ::Input::Base
   # @raises [URI::InvalidURIError] if invalid URL is given
   # @example Launch a server
   #
-  #   server = FluQ::Server.new(bind: "tcp://localhost:7654")
+  #   server = FluQ::Server.new(reactor, bind: "tcp://localhost:7654")
   #
   def initialize(*)
     super
 
     raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
-    @url    = FluQ.parse_url(config[:bind])
+    @url    = FluQ::URL.parse(config[:bind], ["tcp", "unix"])
     @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
     when 'tcp'
@@ -42,13 +42,13 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
     # Start the server. Call `#run!` to launch as actor.
     def run
-      loop { handle_connection! server.accept }
+      loop { async.handle_connection server.accept }
     end
 
     def handle_connection(socket)
       loop do
         @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
-          FluQ.reactor.process(tag, timestamp, record)
+          reactor.process(tag, timestamp, record)
         end
       end
     rescue EOFError
