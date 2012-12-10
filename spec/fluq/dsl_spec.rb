@@ -27,6 +27,7 @@ describe FluQ::DSL do
       to 'tcp://localhost:87654'
     end
     subject.should have(1).handlers
+    subject.handlers.last.first.should == FluQ::Handler::Custom::TestHandler
   end
 
   it 'should evaluate configuration' do
