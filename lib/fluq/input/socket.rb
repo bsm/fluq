@@ -21,7 +21,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
     super
 
     raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
-    @url    = FluQ::URL.parse(config[:bind], ["tcp", "unix"])
+    @url    = FluQ::URL.parse(config[:bind], protocols)
     @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
     when 'tcp'
@@ -29,7 +29,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
     when 'unix'
       UNIXServer.new(@url.path)
     end
-    run!
+    async.run
   end
 
   # Destructor. Close connections.
@@ -38,9 +38,16 @@ class FluQ::Input::Socket < FluQ::Input::Base
     FileUtils.rm_f(url.path) if url.scheme == "unix"
   end
 
+  protected
+
+    # @return [Array] protocols supported protocols
+    def protocols
+      ["tcp", "unix"]
+    end
+
   private
 
-    # Start the server. Call `#run!` to launch as actor.
+    # Start the server.
     def run
       loop { async.handle_connection server.accept }
     end

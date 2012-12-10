@@ -29,12 +29,12 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # @see FluQ::Buffer::Base#on_event
     def on_event(event)
-      writer.write!(event) # Async call
+      writer.async.write(event) # Async call
       @size.update {|v| v += 1 }
     end
 
     def shift
-      writer.rotate!
+      writer.async.rotate
       writer.glob :closed do |path|
         events = []
         @pac.feed_each(path.read) {|e| events << e }

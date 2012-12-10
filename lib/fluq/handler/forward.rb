@@ -7,7 +7,7 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
   # @raises [ArgumentError] when no URLs provided
   def initialize(*)
     super
-    @urls = Array(config[:to]).map {|url| FluQ::URL.parse(url, ["tcp", "unix"]) }
+    @urls = Array(config[:to]).map {|url| FluQ::URL.parse(url, protocols) }
     raise ArgumentError, "No `to` option given" if urls.empty?
   end
 
@@ -18,6 +18,25 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
   end
 
   protected
+
+    # @return [Array] protocols supported protocols
+    def protocols
+      ["tcp", "uniq"]
+    end
+
+    def connect(url)
+      socket = case url.scheme
+      when 'tcp'
+        Celluloid::IO::TCPSocket.new(url.host, url.port)
+      when 'unix'
+        Celluloid::IO::UNIXSocket.new(url.path)
+      end
+      yield socket
+    ensure
+      socket.close if socket
+    end
+
+  private
 
     def do_forward(data)
       tried = [] # URLs we have tries
@@ -32,18 +51,6 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
       ensure
         urls.push(*tried)
       end
-    end
-
-    def connect(url)
-      socket = case url.scheme
-      when 'tcp'
-        Celluloid::IO::TCPSocket.new(url.host, url.port)
-      when 'unix'
-        Celluloid::IO::UNIXSocket.new(url.path)
-      end
-      yield socket
-    ensure
-      socket.close if socket
     end
 
 end
