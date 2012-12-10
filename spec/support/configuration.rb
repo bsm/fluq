@@ -4,12 +4,23 @@ module FluQ::SpecHelpers
 
   def self.included(base)
     super
-    base.let(:reactor) { @reactor = FluQ::Reactor.new }
+    base.instance_eval do
+      let(:reactor) { FluQ::Reactor.new }
+      after         { Celluloid.shutdown }
+    end
+  end
+
+  def wait_for_tasks_to_finish!
+    Celluloid::Actor.all.each do |actor|
+      begin
+        sleep 0.001 while actor.tasks.any? {|t| t.status == :running }
+      rescue Celluloid::DeadActorError
+      end
+    end
   end
 
 end
 
 RSpec.configure do |c|
   c.include FluQ::SpecHelpers
-  c.after { @reactor.terminate if @reactor }
 end

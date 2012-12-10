@@ -33,13 +33,16 @@ describe FluQ::Reactor do
     h2 = subject.register(TestHandler, pattern: "NONE")
     subject.process("tag", 1313131313, {}).should be(true)
 
-    sleep(Celluloid::TIMER_QUANTUM)
+    wait_for_tasks_to_finish!
+
     TestHandler.events.should == { h1.name => [["tag", 1313131313, {}]] }
   end
 
   it "should skip not matching events" do
     h1 = subject.register FluQ::Handler::Base, pattern: "NONE"
-    sleep(Celluloid::TIMER_QUANTUM)
+
+    wait_for_tasks_to_finish!
+
     TestHandler.events.should == {}
   end
 

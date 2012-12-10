@@ -52,15 +52,4 @@ class FluQ::Reactor
     true
   end
 
-  # TODO: Remove once Reactor is a supervisor
-  def terminate
-    finalize
-  end
-
-  # Finalizer
-  def finalize
-    @inputs.finalize
-    @workers.finalize
-  end
-
 end

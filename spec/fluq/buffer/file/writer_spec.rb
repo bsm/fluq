@@ -78,6 +78,7 @@ describe FluQ::Buffer::File::Writer do
       t3 = Thread.new { 64.times { subject.write!(event) } }
       [t1, t2, t3].each(&:join)
     }.should_not raise_error
+    wait_for_tasks_to_finish!
 
     total = (subject.glob(:open) + subject.glob(:closed)).map {|n| read(n).size }.inject(0, :+)
     total.should == 128
