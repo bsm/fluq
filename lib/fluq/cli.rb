@@ -1,37 +1,49 @@
 require "optparse"
-require "fluq/version"
+require "fileutils"
 
 module FluQ
   class CLI
 
+    # attr_reader [Hash] options
     attr_reader :options
 
+    # Runs the CLI
     def self.run
       new.run
     end
 
+    # Constructor
     def initialize
+      super
       @options = {}
       parser.parse!(ARGV)
     end
 
     def run
-      unless options[:config] && File.file?(options[:config])
+      unless configured?
         puts parser
         exit
       end
 
-      ENV["FLUQ_ENV"] = options[:env] if options[:env]
+      if options[:env]
+        ENV["FLUQ_ENV"] = options[:env]
+      end
 
       require 'fluq'
-      STDOUT.puts "Starting FluQ #{FluQ::VERSION}"
-      FluQ::DSL.new(FluQ::Reactor.new, options[:config]).run
+
+      if options[:log]
+        FileUtils.mkdir_p(File.dirname(options[:log]))
+        FluQ.logger = ::Logger.new(options[:log])
+      end
 
       if options[:verbose]
         FluQ.logger.level = ::Logger::DEBUG
       end
 
-      @pidfile = options[:pidfile] || FluQ.root.join("tmp", "pids", "#{FluQ.env}.pid")
+      FluQ.logger.info "Starting FluQ #{FluQ::VERSION}"
+      FluQ::DSL.new(FluQ::Reactor.new, options[:config]).run
+
+      @pidfile = options[:pidfile] || FluQ.root.join("tmp", "pids", "fluq.pid")
       FileUtils.mkdir_p(File.dirname(@pidfile))
       File.open(@pidfile, "w") {|f| f.write Process.pid }
 
@@ -44,8 +56,14 @@ module FluQ
       sleep
     end
 
+    # @return [Boolean] true if configured
+    def configured?
+      options[:config] && File.file?(options[:config])
+    end
+
+    # Callback, called on exit
     def quit(*)
-      STDOUT.puts "Shutting down ..."
+      FluQ.logger.info "Shutting down FluQ" if defined?(FluQ)
       FileUtils.rm_f(@pidfile) if @pidfile
       exit
     end
@@ -66,8 +84,12 @@ module FluQ
           o.separator ""
           o.separator "Optional:"
 
-          o.on("-e", "--environment ENV", "The environment, defaults to 'development'") do |val|
+          o.on("-e", "--environment ENV", "Runtime environment (default: development)") do |val|
             @options[:env] = val
+          end
+
+          o.on("-l", "--log FILE", "File to log to (default: STDOUT)") do |val|
+            @options[:log] = val
           end
 
           o.on("-v", "--verbose", "Use verbose output") do |val|
@@ -76,7 +98,7 @@ module FluQ
 
           o.separator ""
 
-          o.on "--pidfile FILE", "Path to pidfile, defaults to tmp/pids/ENVIRONMENT.pid" do |val|
+          o.on "--pidfile FILE", "Path to pidfile (default: tmp/pids/fluq.pid)" do |val|
             @options[:pidfile] = val
           end
 

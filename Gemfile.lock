@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fluq (0.6.2)
+    fluq (0.6.3)
       atomic
       celluloid-io
       msgpack

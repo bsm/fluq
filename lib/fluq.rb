@@ -15,12 +15,12 @@ module FluQ
     # @attr_reader [Pathname] root project root
     # @attr_reader [Timers] timers global timers
     # @attr_reader [Thread] scheduler background scheduler
-    attr_reader :env, :root, :timers, :scheduler
+    # @attr_reader [Logger] logger the main logger
+    attr_reader :env, :root, :timers, :scheduler, :logger
 
-    # Returns Celluloid's logger. Please use `Celluloid.logger = ...` to override.
-    # @return [Logger] the thread-safe logger instance
-    def logger
-      Celluloid.logger
+    # @param [Logger] instance the thread-safe logger instance
+    def logger=(instance)
+      @logger = Celluloid.logger = instance
     end
 
     def init!
@@ -35,6 +35,10 @@ module FluQ
 
       # Start background thread to fire timers
       @scheduler = Thread.new { loop { timers.empty? ? sleep(10) : timers.wait } }
+
+      # Setup logger
+      self.logger  = ::Logger.new(STDOUT)
+      logger.level = ::Logger::INFO if env == "production"
     end
     protected :init!
 
