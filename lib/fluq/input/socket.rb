@@ -45,12 +45,12 @@ class FluQ::Input::Socket < FluQ::Input::Base
       ["tcp", "unix"]
     end
 
-  private
-
     # Start the server.
     def run
       loop { async.handle_connection server.accept }
     end
+
+  private
 
     def handle_connection(socket)
       loop do
