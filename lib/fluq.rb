@@ -41,7 +41,6 @@ module FluQ
       @scheduler = Thread.new do
         loop do
           sleep 1
-          logger.debug { "Firing timers..." }
           begin
             timers.fire
           rescue => e
