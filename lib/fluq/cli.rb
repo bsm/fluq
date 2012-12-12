@@ -40,6 +40,8 @@ module FluQ
         FluQ.logger.level = ::Logger::DEBUG
       end
 
+      $LOAD_PATH.unshift FluQ.root.join('lib')
+
       FluQ.logger.info "Starting FluQ #{FluQ::VERSION}"
       FluQ::DSL.new(FluQ::Reactor.new, options[:config]).run
 
@@ -50,8 +52,6 @@ module FluQ
       Signal.trap("INT", &method(:quit))
       Signal.trap("TERM", &method(:quit))
       Signal.trap("QUIT", &method(:quit))
-
-      $LOAD_PATH.unshift FluQ.root.join('lib')
 
       sleep
     end
