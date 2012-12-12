@@ -33,12 +33,22 @@ module FluQ
       # Initialize timers
       @timers = Timers.new
 
-      # Start background thread to fire timers
-      @scheduler = Thread.new { loop { sleep(1); timers.fire } }
-
       # Setup logger
       self.logger  = ::Logger.new(STDOUT)
       logger.level = ::Logger::INFO if env == "production"
+
+      # Start background thread to fire timers
+      @scheduler = Thread.new do
+        loop do
+          sleep 1
+          logger.debug { "Firing timers..." }
+          begin
+            timers.fire
+          rescue => e
+            logger.warn { "Timer task failed: #{e}" }
+          end
+        end
+      end
     end
     protected :init!
 
