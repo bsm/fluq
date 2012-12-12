@@ -34,7 +34,7 @@ module FluQ
       @timers = Timers.new
 
       # Start background thread to fire timers
-      @scheduler = Thread.new { loop { timers.empty? ? sleep(10) : timers.wait } }
+      @scheduler = Thread.new { loop { sleep(1); timers.fire } }
 
       # Setup logger
       self.logger  = ::Logger.new(STDOUT)
