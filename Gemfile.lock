@@ -23,6 +23,7 @@ GEM
     msgpack-jruby (1.3.0-java)
     multi_json (1.5.0)
     nio4r (0.4.3)
+    nio4r (0.4.3-java)
     rake (10.0.2)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)

@@ -22,7 +22,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
   protected
 
-  # @return [FluQ::Buffer::File::Writer] thread-safe buffer writer
+    # @return [FluQ::Buffer::File::Writer] thread-safe buffer writer
     def writer
       @writer ||= supervisor.actors.first
     end
@@ -37,7 +37,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
       writer.async.rotate
       writer.glob :closed do |path|
         events = []
-        @pac.feed_each(path.read) {|e| events << e }
+        @pac.feed_each(path.read) {|a| events << FluQ::Event.new(*a) }
         yield(events, path)
       end
     end

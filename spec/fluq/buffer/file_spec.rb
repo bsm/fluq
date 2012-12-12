@@ -68,6 +68,8 @@ describe FluQ::Buffer::File do
       [subject, writer.glob(:open), writer.glob(:closed)].map(&:size)
     }.from([18, 1, 2]).to([0, 0, 0])
     events.should have(18).items
+    events.first.should be_a(FluQ::Event)
+    events.first.should == event
   end
 
   it "should rotate files safely" do
