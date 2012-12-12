@@ -21,6 +21,10 @@ describe FluQ::Buffer::File do
     acc
   end
 
+  def total_events
+    (writer.glob(:open) + writer.glob(:closed)).map {|path| events(path).size }.inject(0, :+)
+  end
+
   it_behaves_like "a buffer"
   it { should be_a(FluQ::Buffer::Base) }
   its(:supervisor) { should be_a(Celluloid::SupervisionGroup) }
@@ -73,10 +77,9 @@ describe FluQ::Buffer::File do
       t3 = Thread.new { 64.times { subject.push(event) } }
       [t1, t2, t3].each(&:join)
     }.should_not raise_error
-    sleep Celluloid::TIMER_QUANTUM
 
-    total = (writer.glob(:open) + writer.glob(:closed)).map {|path| events(path).size }.inject(0, :+)
-    total.should == 128
+    FluQ::Testing.wait_until { total_events > 127 }
+    total_events.should == 128
   end
 
 end

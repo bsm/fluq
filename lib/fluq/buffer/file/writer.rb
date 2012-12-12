@@ -39,31 +39,29 @@ class FluQ::Buffer::File::Writer
     current.close unless current.closed?
   end
 
-  protected
+  # Rotate the current file
+  # @return [Boolean] true if successful
+  def rotate
+    return false if current.pos == 0
 
-    # Rotate the current file
-    # @return [Boolean] true if successful
-    def rotate
-      return false if current.pos == 0
+    path = current.path
+    current.close
+    archive(path)
+  end
 
-      path = current.path
-      current.close
-      archive(path)
-    end
+  # Writes event, call asynchronously as #write!
+  # @param [FluQ::Event] event
+  def write(event)
+    binary = event.encode
+    rotate if current.pos + binary.bytesize > limit
+    current.write(binary)
+  end
 
-    # Writes event, call asynchronously as #write!
-    # @param [FluQ::Event] event
-    def write(event)
-      binary = event.encode
-      rotate if current.pos + binary.bytesize > limit
-      current.write(binary)
-    end
-
-    # @attr_reader [File] the current buffer
-    def current
-      @current = new_file if @current.nil? || @current.closed?
-      @current
-    end
+  # @attr_reader [File] the current buffer
+  def current
+    @current = new_file if @current.nil? || @current.closed?
+    @current
+  end
 
   private
 

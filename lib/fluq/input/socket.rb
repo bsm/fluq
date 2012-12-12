@@ -38,27 +38,26 @@ class FluQ::Input::Socket < FluQ::Input::Base
     FileUtils.rm_f(url.path) if url.scheme == "unix"
   end
 
+  # Start the server.
+  def run
+    loop { async.handle_connection server.accept }
+  end
+
+  # Handle an incoming connection
+  def handle_connection(socket)
+    loop do
+      @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
+        reactor.process(tag, timestamp, record)
+      end
+    end
+  rescue EOFError
+  end
+
   protected
 
     # @return [Array] supported protocols
     def protocols
       ["tcp", "unix"]
-    end
-
-    # Start the server.
-    def run
-      loop { async.handle_connection server.accept }
-    end
-
-  private
-
-    def handle_connection(socket)
-      loop do
-        @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
-          reactor.process(tag, timestamp, record)
-        end
-      end
-    rescue EOFError
     end
 
 end
