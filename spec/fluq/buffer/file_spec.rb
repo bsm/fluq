@@ -40,6 +40,13 @@ describe FluQ::Buffer::File do
       }.from([true, false]).to([false, true])
     end
 
+    it "should revert reserved files" do
+      root.join("2012121212.abcd.open").open("wb") {|f| f.write(event.encode) }
+      lambda { subject }.should change {
+        [root.join("2012121212.abcd.open").file?, root.join("2012121212.abcd.closed").file?]
+      }.from([true, false]).to([false, true])
+    end
+
     it "should count previous events" do
       root.join("2012121212.abcd.open").open("wb") {|f| f.write(event.encode) }
       root.join("2012121212.bcde.closed").open("wb") {|f| f.write(event.encode * 2) }

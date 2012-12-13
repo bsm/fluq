@@ -40,9 +40,37 @@ describe FluQ::Buffer::File::Writer do
     target = subject.root.join("a.b.closed")
     source.open("w") {}
 
-    lambda { subject.archive(source) }.should change {
+    lambda { subject.archive(source).should == target }.should change {
       [source.exist?, target.exist?]
     }.from([true, false]).to([false, true])
+
+    subject.archive(source).should be(nil)
+    subject.archive(target).should be(nil)
+  end
+
+  it "should reserve files" do
+    source = subject.root.join("a.b.closed")
+    source.open("w") {}
+    target = nil
+
+    lambda { target = subject.reserve(source) }.should change { source.exist? }.to(false)
+    target.should be_instance_of(Pathname)
+
+    subject.reserve(source).should be(nil)
+    subject.reserve(target).should be(nil)
+  end
+
+  it "should unreserve files" do
+    source = subject.root.join("a.b.closed.abcdef")
+    source.open("w") {}
+    target = subject.root.join("a.b.closed")
+
+    lambda { subject.unreserve(source).should == target }.should change {
+      [source.exist?, target.exist?]
+    }.from([true, false]).to([false, true])
+
+    subject.unreserve(source).should be(nil)
+    subject.unreserve(target).should be(nil)
   end
 
   it "should rotate files" do

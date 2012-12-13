@@ -37,12 +37,6 @@ describe FluQ::Buffer::Base do
     }.should change { handler.flushed.size }.by(1)
   end
 
-  it 'should not flush without events' do
-    lambda {
-      subject.flush
-    }.should_not change { handler.flushed }
-  end
-
   describe "flushing" do
 
     it 'should clear flushed events' do

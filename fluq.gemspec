@@ -27,9 +27,10 @@ Gem::Specification.new do |s|
   else
     s.add_dependency "msgpack"
   end
-  s.add_dependency "celluloid-io"
+  s.add_dependency "celluloid-io", "~> 0.12.1"
   s.add_dependency "atomic"
   s.add_dependency "multi_json"
+  s.add_dependency "timers", ">= 1.0.2"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "bundler"

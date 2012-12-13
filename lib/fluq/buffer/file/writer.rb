@@ -25,14 +25,37 @@ class FluQ::Buffer::File::Writer
     Pathname.glob(scopes[scope], &block)
   end
 
-  # @param [String] path path to archive
-  # @return [Boolean] true if successful
+  # @param [Pathname] path path to archive
+  # @return [Pathname, NilClass] the archived file or nil
   def archive(path)
-    return false unless File.exist?(path)
+    return unless path.to_s.match(/\.open$/)
 
-    target = path.to_s.sub(/\.open$/, ".closed")
-    FileUtils.mv path, target unless path == target
-    true
+    target = Pathname.new path.to_s.sub(/\.open$/, ".closed")
+    path.rename(target.to_s) unless path == target
+    target
+  rescue Errno::ENOENT
+  end
+
+  # @param [Pathname] path path to file
+  # @return [Pathname,NilClass] the reserved file or false
+  def reserve(path)
+    return unless path.to_s.match(/\.closed$/)
+
+    target = Pathname.new "#{path}.#{SecureRandom.hex(6)}"
+    path.rename(target.to_s)
+    target
+  rescue Errno::ENOENT
+  end
+
+  # @param [Pathname] path path to file
+  # @return [Pathname,NilClass] the closed file or false
+  def unreserve(path)
+    return unless path.to_s.match(/\.closed.\w+$/)
+
+    target = Pathname.new path.to_s.sub(/\.closed.\w+$/, '.closed')
+    path.rename(target.to_s)
+    target
+  rescue Errno::ENOENT
   end
 
   def finalize
@@ -46,7 +69,7 @@ class FluQ::Buffer::File::Writer
 
     path = current.path
     current.close
-    archive(path)
+    !!archive(Pathname.new(path))
   end
 
   # Writes event, call asynchronously as #write!
@@ -80,7 +103,7 @@ class FluQ::Buffer::File::Writer
 
     # @return [Hash] file scopes
     def scopes
-      @scopes ||= { open: root.join("*.*.open").to_s, closed: root.join("*.*.closed").to_s }
+      @scopes ||= { open: root.join("*.*.open").to_s, closed: root.join("*.*.closed").to_s, reserved: root.join("*.*.closed.*").to_s }
     end
 
 end
