@@ -16,7 +16,7 @@ class FluQ::Buffer::Base
     @config   = defaults.merge(options)
     @interval = handler.config[:flush_interval].to_i
     @rate     = handler.config[:flush_rate].to_i
-    @rate     = 10_000 unless (1..10_000).include?(@rate)
+    @rate     = 100_000 unless (1..100_000).include?(@rate)
     @size     = Atomic.new(0)
     @timer    = FluQ.timers.every(interval) { flush } if interval > 0
   end
@@ -39,8 +39,8 @@ class FluQ::Buffer::Base
   # @param [FluQ::Event] an event to buffer
   def push(event)
     on_event(event)
-    unless size < @rate
-      @timer.reset if @timer
+    unless size < rate
+      timer.reset if timer
       flush
     end
   end

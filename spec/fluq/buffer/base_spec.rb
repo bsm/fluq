@@ -14,7 +14,7 @@ describe FluQ::Buffer::Base do
   its(:rate)       { should be(2) }
 
   it 'should limit rate' do
-    FluQ::Handler::TestBuffered.new(flush_rate: 20_000).send(:buffer).send(:rate).should == 10_000
+    FluQ::Handler::TestBuffered.new(flush_rate: 200_000).send(:buffer).send(:rate).should == 100_000
   end
 
   it 'should flush when rate is reached' do

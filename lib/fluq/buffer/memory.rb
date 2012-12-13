@@ -17,7 +17,7 @@ class FluQ::Buffer::Memory < FluQ::Buffer::Base
     end
 
     def shift
-      yield(store.shift(10_000), {})
+      yield(store.shift(rate), {})
     end
 
     def revert(buffer, *)

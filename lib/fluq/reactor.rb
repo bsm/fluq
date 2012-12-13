@@ -1,29 +1,15 @@
 class FluQ::Reactor
 
-  class Worker
-    include Celluloid
-
-    # @param [FluQ::Handler::Base] handler
-    # @param [FluQ::Event] event
-    def process(handler, event)
-      handler.on_event(event) if handler.match?(event)
-    end
-  end
-
   # attr_reader [Celluloid::SupervisionGroup] inputs
   attr_reader :inputs
 
   # attr_reader [Hash] handlers
   attr_reader :handlers
 
-  # attr_reader [Celluloid::PoolManager] workers
-  attr_reader :workers
-
   def initialize(*)
     super
     @inputs   = Celluloid::SupervisionGroup.new
     @handlers = {}
-    @workers  = FluQ::Reactor::Worker.pool
   end
 
   # Listens to an input
@@ -48,7 +34,7 @@ class FluQ::Reactor
   # @see FluQ::Event#initialize
   def process(tag, timestamp, record)
     event = FluQ::Event.new(tag, timestamp, record)
-    handlers.each {|_, handler| @workers.async.process(handler, event) }
+    handlers.each {|_, handler| handler.on_event(event) if handler.match?(event) }
     true
   end
 

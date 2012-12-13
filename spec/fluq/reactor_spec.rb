@@ -4,7 +4,6 @@ describe FluQ::Reactor do
   subject { reactor }
 
   its(:handlers) { should == {} }
-  its(:workers)  { should be_a(Celluloid) }
   its(:inputs)   { should be_a(Celluloid) }
 
   it "should listen to inputs" do
