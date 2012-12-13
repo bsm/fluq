@@ -48,8 +48,7 @@ class FluQ::Reactor
   # @see FluQ::Event#initialize
   def process(tag, timestamp, record)
     event = FluQ::Event.new(tag, timestamp, record)
-    # handlers.each {|_, handler| @workers.async.process(handler, event) }
-    handlers.each {|_, handler| handler.match?(event.tag) && handler.on_event(event) }
+    handlers.each {|_, handler| @workers.async.process(handler, event) }
     true
   end
 
