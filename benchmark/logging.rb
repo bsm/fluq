@@ -34,9 +34,8 @@ central.listen FluQ::Input::Socket,
 central.register FluQ::Handler::Log,
   path: "log/benchmark/file.log"
 
-GC.start
-sec = Benchmark.realtime do
-  (0...10).map do
+dispatched = Benchmark.realtime do
+  (0...50).map do
     Thread.new do |thread|
       socket = TCPSocket.new "127.0.0.1", "30303"
       while chunk = (QUEUE.pop(true) rescue nil)
@@ -45,8 +44,12 @@ sec = Benchmark.realtime do
       socket.close
     end
   end.each(&:join)
+end
+puts "Dispatched in #{dispatched.round(1)}s"
+
+received = Benchmark.realtime do
   sleep(0.1) until output.file? && output.size >= LIMIT
 end
-puts "Completed in #{sec.round(1)}s"
+puts "Completed in #{(dispatched + received).round(1)}s"
 
-sleep(3)
+sleep(1)

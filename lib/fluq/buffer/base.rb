@@ -23,14 +23,14 @@ class FluQ::Buffer::Base
 
   # Flushes the buffer
   def flush
-    @size.update {|v| v = 0 }
+    @size.update {|*| 0 }
     shift do |buffer, opts|
       logger.debug { "#{self.class.name}#flush size: #{buffer.size}" }
       begin
         handler.on_flush(buffer)
         commit(buffer, opts)
       rescue FluQ::Handler::Buffered::FlushError => e
-        @size.update {|v| v += buffer.size }
+        @size.update {|v| v + buffer.size }
         revert(buffer, opts)
       end
     end
@@ -40,7 +40,7 @@ class FluQ::Buffer::Base
   # @param [FluQ::Event] an event to buffer
   def push(event)
     on_event(event)
-    @size.update {|v| v += 1 }
+    @size.update {|v| v + 1 }
     unless size < rate
       timer.reset if timer
       flush
