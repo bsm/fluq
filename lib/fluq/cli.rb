@@ -10,7 +10,7 @@ module FluQ
 
     # attr_reader [Hash] options
     attr_reader :options
-    attr_reader :pending_signals, :pipe, :worker
+    attr_reader :pending_signals, :read_io, :write_io, :worker
 
     # Runs the CLI
     def self.run
@@ -29,7 +29,7 @@ module FluQ
       parser.parse!(ARGV)
 
       # Setup pipe & signals
-      @pipe = IO.pipe
+      @read_io, @write_io = IO.pipe
       @pending_signals = []
     end
 
@@ -65,7 +65,7 @@ module FluQ
       File.open(@pidfile, "w") {|f| f.write Process.pid }
 
       # Setup IO pipe
-      pipe.each {|io| io.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC) }
+      [read_io, write_io].each {|io| io.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC) }
 
       # Trap signals
       SIGNALS.each {|signal| trap(signal) {|_| on_signal(signal) } }
@@ -93,11 +93,11 @@ module FluQ
       # Callback, when signal received
       def on_signal(signal)
         if pending_signals.size < 5
-          FluQ.logger.debug "Received #{signal}, pending=#{pending_signals.inspect}"
+          FluQ.logger.debug "Received #{signal}, pending: #{pending_signals.inspect}"
           pending_signals << signal
           master_poke!
         else
-          FluQ.logger.debug "Ignoring #{signal}, pending=#{pending_signals.inspect}"
+          FluQ.logger.debug "Ignoring #{signal}, pending: #{pending_signals.inspect}"
         end
       end
 
@@ -141,16 +141,16 @@ module FluQ
       # Put master asleep
       def master_sleep!
         begin
-          ready = IO.select([pipe.first], nil, nil, 1) or return
+          ready = IO.select([read_io], nil, nil, 1) or return
           ready[0] && ready[0][0] or return
-          loop { pipe.first.read_nonblock(CHUNK_SIZE) }
+          loop { read_io.read_nonblock(CHUNK_SIZE) }
         rescue Errno::EAGAIN, Errno::EINTR
         end
       end
 
       # Poke master
       def master_poke!
-        pipe.last.write_nonblock('.') # wakeup master process from select
+        write_io.write_nonblock('.') # wakeup master process from select
       rescue Errno::EAGAIN, Errno::EINTR
         retry # pipe is full, master should wake up anyways
       end
