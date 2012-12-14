@@ -72,7 +72,7 @@ class FluQ::Buffer::File::Writer
     !!archive(Pathname.new(path))
   end
 
-  # Writes event, call asynchronously as #write!
+  # Writes event, can be called asynchronously
   # @param [FluQ::Event] event
   def write(event)
     binary = event.encode
