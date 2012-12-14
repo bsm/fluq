@@ -22,7 +22,6 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
     raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
     @url    = FluQ::URL.parse(config[:bind], protocols)
-    @pac    = MessagePack::Unpacker.new
     @server = case @url.scheme
     when 'tcp'
       TCPServer.new(@url.host, @url.port)
@@ -45,12 +44,14 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   # Handle an incoming connection
   def handle_connection(socket)
+    pac = MessagePack::Unpacker.new(socket)
     loop do
-      @pac.feed_each(socket.readpartial(4096)) do |tag, timestamp, record|
+      pac.each do |tag, timestamp, record|
         reactor.process(tag, timestamp, record)
       end
     end
   rescue EOFError
+    socket.close
   end
 
   protected

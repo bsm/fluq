@@ -41,15 +41,13 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
     def do_forward(data)
       tried = [] # URLs we have tries
       begin
-        url = urls.shift
+        url = (urls - tried).sample
         tried.push(url)
         connect(url) {|sock| sock.write(data) }
       rescue Errno::ECONNREFUSED, IOError, EOFError => e
         FluQ.logger.error "Forwarding failed to backend #{url}: #{e.message}"
-        raise FluQ::Handler::Buffered::FlushError, "Forwarding failed. No backends available." if urls.empty? # No more URLs to try
+        raise FluQ::Handler::Buffered::FlushError, "Forwarding failed. No backends available." if (urls - tried).empty? # No more URLs to try
         retry
-      ensure
-        urls.push(*tried)
       end
     end
 
