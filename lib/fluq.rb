@@ -40,9 +40,8 @@ module FluQ
       # Start background thread to fire timers
       @scheduler = Thread.new do
         loop do
-          sleep 1
           begin
-            timers.fire
+            timers.wait
           rescue => e
             logger.warn { "Timer task failed: #{e}" }
           end
