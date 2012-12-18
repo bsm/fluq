@@ -41,6 +41,7 @@ module FluQ
       @scheduler = Thread.new do
         loop do
           begin
+            sleep(1) while timers.empty?
             timers.wait
           rescue => e
             logger.warn { "Timer task failed: #{e}" }
