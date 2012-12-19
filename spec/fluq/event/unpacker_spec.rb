@@ -20,8 +20,8 @@ describe FluQ::Event::Unpacker do
   its(:to_a) { should include(event) }
 
   it 'should iterate only once' do
-    subject.to_a
-    lambda { subject.to_a }.should raise_error(IOError, /closed stream/i)
+    subject.to_a.should have(3).items
+    subject.to_a.should have(:no).items
   end
 
   it 'should deal with partial inputs' do

@@ -35,7 +35,7 @@ central.register FluQ::Handler::Log,
   path: "log/benchmark/file.log"
 
 dispatched = Benchmark.realtime do
-  (0...50).map do
+  (0...20).map do
     Thread.new do |thread|
       socket = TCPSocket.new "127.0.0.1", "30303"
       while chunk = (QUEUE.pop(true) rescue nil)

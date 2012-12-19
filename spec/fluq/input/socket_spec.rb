@@ -26,7 +26,20 @@ describe FluQ::Input::Socket do
     client.close
 
     FluQ::Testing.wait_until { handler.events.size > 0 }
-    handler.events.should == [event]
+    handler.should have(1).events
+  end
+
+  it 'should handle large parallel requests' do
+    (0...2).map do
+      Thread.new do
+        client = TCPSocket.open("127.0.0.1", 26712)
+        client.write (0...500).map { event.encode }.join
+        client.close
+      end
+    end.each(&:join)
+
+    FluQ::Testing.wait_until { handler.events.size == 1000 }
+    handler.should have(1000).events
   end
 
 end

@@ -10,9 +10,10 @@ class FluQ::Event::Unpacker
   # @yield over events
   # @yieldparam [Event] event
   def each
+    return if @pac.stream.closed?
+
     @pac.each do |tag, timestamp, record|
-      event = FluQ::Event.new(tag, timestamp, record)
-      yield event
+      yield FluQ::Event.new(tag, timestamp, record)
     end
   rescue EOFError
     @pac.stream.close
