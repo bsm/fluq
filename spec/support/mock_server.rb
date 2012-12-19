@@ -15,7 +15,6 @@ class MockTCPServer
   attr_reader :port, :events
 
   def initialize(port)
-    @pac    = MessagePack::Unpacker.new
     @port   = port
     @events = []
     @thread = start
@@ -44,9 +43,7 @@ class MockTCPServer
         @server = ::TCPServer.new("127.0.0.1", port)
         loop do
           Thread.current[:listening] = true
-          client = @server.accept
-          @pac.feed_each(client.readpartial(4096)) {|e| @events << e }
-          client.close
+          @events += FluQ::Event::Unpacker.new(@server.accept).to_a
         end
       end
     end

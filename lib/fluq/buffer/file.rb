@@ -6,7 +6,6 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
   # @see FluQ::Buffer::Base#initialize
   def initialize(*)
     super
-    @pac = MessagePack::Unpacker.new
     @supervisor = FluQ::Buffer::File::Writer.supervise(config[:path], config[:max_size].to_i)
 
     # Archive all open files
@@ -21,9 +20,9 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # Count records from orphaned files
     writer.glob :closed do |path|
-      count = 0
-      @pac.feed_each(path.read) {|*| count += 1 }
-      @size.update {|v| v += count }
+      path.open("r") do |io|
+        @size.update {|v| v + FluQ::Event::Unpacker.new(io).count }
+      end
     end
   end
 
@@ -47,7 +46,9 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
         next unless reserved
 
         events = []
-        @pac.feed_each(reserved.read) {|a| events << FluQ::Event.new(*a) }
+        reserved.open("r") do |io|
+          events = FluQ::Event::Unpacker.new(io).to_a
+        end
         yield(events, path: reserved)
       end
     end

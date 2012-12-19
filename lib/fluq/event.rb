@@ -5,7 +5,7 @@ class FluQ::Event < Hash
   # @param [String] tag the event tag
   # @param [Integer] timestamp the UNIX timestamp
   # @param [Hash] record the attribute pairs
-  def initialize(tag, timestamp, record)
+  def initialize(tag = "", timestamp = 0, record = {})
     @tag, @timestamp = tag.to_s, timestamp.to_i
     super()
     update(record) if Hash === record
@@ -46,5 +46,9 @@ class FluQ::Event < Hash
     [tag, timestamp, Hash.new.update(self)].inspect
   end
 
+end
+
+%w'unpacker'.each do |name|
+  require "fluq/event/#{name}"
 end
 

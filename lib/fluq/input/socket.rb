@@ -44,14 +44,8 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   # Handle an incoming connection
   def handle_connection(socket)
-    pac = MessagePack::Unpacker.new(socket)
-    loop do
-      pac.each do |tag, timestamp, record|
-        reactor.process(tag, timestamp, record)
-      end
-    end
-  rescue EOFError
-    socket.close
+    pac = FluQ::Event::Unpacker.new(socket)
+    pac.each {|event| reactor.process(event) }
   end
 
   protected

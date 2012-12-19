@@ -16,9 +16,7 @@ describe FluQ::Buffer::File do
   end
 
   def events(path)
-    acc = []
-    MessagePack::Unpacker.new.feed_each(File.read(path)) {|i| acc << i }
-    acc
+    FluQ::Event::Unpacker.new(File.open(path)).to_a
   end
 
   def total_events
@@ -90,5 +88,4 @@ describe FluQ::Buffer::File do
     FluQ::Testing.wait_until { total_events > 127 }
     total_events.should == 128
   end
-
 end

@@ -32,8 +32,7 @@ class FluQ::Reactor
   end
 
   # @see FluQ::Event#initialize
-  def process(tag, timestamp, record)
-    event = FluQ::Event.new(tag, timestamp, record)
+  def process(event)
     handlers.each {|_, handler| handler.on_event(event) if handler.match?(event) }
     true
   end

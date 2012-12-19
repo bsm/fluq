@@ -30,7 +30,7 @@ describe FluQ::Reactor do
   it "should process events" do
     h1 = subject.register(FluQ::Handler::Test)
     h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
-    subject.process("tag", 1313131313, {}).should be(true)
+    subject.process(FluQ::Event.new("tag", 1313131313, {})).should be(true)
 
     FluQ::Testing.wait_until { h1.events.size > 0 }
     h1.events.should == [["tag", 1313131313, {}]]
