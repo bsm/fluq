@@ -19,7 +19,7 @@ class FluQ::Buffer::File::Writer
     FileUtils.mkdir_p(root)
   end
 
-  # @param [Symbol<Pathname>] scope, either `:open` or `:closed`
+  # @param [Symbol<Pathname>] scope, either `:open`, `:closed` or `:reserved`
   # @yield [Pathname] path matching scope
   def glob(scope, &block)
     Pathname.glob(scopes[scope], &block)
