@@ -16,20 +16,11 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     tag  = @rewrite.call(event.tag)
     path = event.time.strftime(@full_path.gsub("%t", tag))
 
-    FileUtils.mkdir_p(File.dirname(path))
-    File.open(path, "a+") do |file|
-      write(file, event)
-    end
+    io = file_pool.get(path)
+    io.puts(@convert.call(event))
   end
 
   protected
-
-    def write(io, event)
-      io = Zlib::GzipWriter.new(io) if @gzip
-      io.puts(@convert.call(event))
-    ensure
-      io.close
-    end
 
     # Configuration defaults
     def defaults
@@ -37,6 +28,10 @@ class FluQ::Handler::Log < FluQ::Handler::Base
         path: "log/raw/%t/%Y%m%d/%H.log.gz",
         rewrite: lambda {|tag| tag.gsub(".", "/") },
         convert: lambda {|event| event.to_s }
+    end
+
+    def file_pool
+      @file_pool ||= FluQ::Handler::Log::FilePool.new(gzip: @gzip)
     end
 
 end

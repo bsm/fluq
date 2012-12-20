@@ -19,6 +19,7 @@ describe FluQ::Handler::Log do
 
   it 'should log events' do
     subject.on_event(event)
+    subject.send(:file_pool).finalize
     file = root.join("my/special/tag/20110812/06.log.gz")
     file.should be_file
     read_gz(file).should == %(my.special.tag\t1313131313\t{"a":"1"}\n)
@@ -27,18 +28,21 @@ describe FluQ::Handler::Log do
   it "can log plain text" do
     plain = described_class.new(path: "log/raw/%t/%Y%m%d/%H.log")
     plain.on_event(event)
+    plain.send(:file_pool).finalize
     root.join("my/special/tag/20110812/06.log").read.should == %(my.special.tag\t1313131313\t{"a":"1"}\n)
   end
 
   it 'can have custom conversions' do
     subject = described_class.new convert: lambda {|e| e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
     subject.on_event(event)
+    subject.send(:file_pool).finalize
     read_gz(root.join("my/special/tag/20110812/06.log.gz")).should == "a=1,ts=1313131313\n"
   end
 
   it 'can rewrite tags' do
     subject = described_class.new rewrite: lambda {|t| t.split('.').reverse.first(2).join(".") }
     subject.on_event(event)
+    subject.send(:file_pool).finalize
     root.join("tag.special/20110812/06.log.gz").should be_file
   end
 
