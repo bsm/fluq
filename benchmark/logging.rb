@@ -16,7 +16,7 @@ central = FluQ::Reactor.new
 output  = FluQ.root.join("log/benchmark/file.log")
 
 QUEUE   = Queue.new
-EVENTS  = 100_000
+EVENTS  = 1_000_000
 LIMIT   = (event.to_s.size + 1) * EVENTS
 
 EVENTS.times { QUEUE.push(packed) }
@@ -52,6 +52,4 @@ received = Benchmark.realtime do
   sleep(0.1) until output.file? && output.size >= LIMIT
 end
 puts "Completed in #{(dispatched + received).round(1)}s"
-puts "Used memory #{(`ps -o rss= -p #{Process.pid}`.to_f / 1024).round(2)} Mb"
-puts "Press CTRL+C to exit"
-sleep(60)
+puts "Used memory #{(`ps -o rss= -p #{Process.pid}`.to_f / 1024).round(2)} Mb, produced #{(output.size / 1024).round(2)} Mb output file"
