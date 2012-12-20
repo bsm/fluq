@@ -16,7 +16,7 @@ central = FluQ::Reactor.new
 output  = FluQ.root.join("log/benchmark/file.log")
 
 QUEUE   = Queue.new
-EVENTS  = 100_000
+EVENTS  = 200_000
 LIMIT   = (event.to_s.size + 1) * EVENTS
 
 EVENTS.times { QUEUE.push(packed) }
@@ -35,7 +35,7 @@ central.register FluQ::Handler::Log,
   path: "log/benchmark/file.log"
 
 dispatched = Benchmark.realtime do
-  (0...20).map do
+  (0...5).map do
     Thread.new do |thread|
       socket = TCPSocket.new "127.0.0.1", "30303"
       while chunk = (QUEUE.pop(true) rescue nil)
@@ -51,5 +51,5 @@ received = Benchmark.realtime do
   sleep(0.1) until output.file? && output.size >= LIMIT
 end
 puts "Completed in #{(dispatched + received).round(1)}s"
-
-sleep(1)
+puts "Press CTRL+C to exit"
+sleep(60)
