@@ -39,6 +39,7 @@ dispatched = Benchmark.realtime do
     Thread.new do |thread|
       socket = TCPSocket.new "127.0.0.1", "30303"
       while chunk = (QUEUE.pop(true) rescue nil)
+        # puts 1
         socket.write(chunk)
       end
       socket.close
@@ -51,5 +52,6 @@ received = Benchmark.realtime do
   sleep(0.1) until output.file? && output.size >= LIMIT
 end
 puts "Completed in #{(dispatched + received).round(1)}s"
+puts "Used memory #{(`ps -o rss= -p #{Process.pid}`.to_f / 1024).round(2)} Mb"
 puts "Press CTRL+C to exit"
 sleep(60)
