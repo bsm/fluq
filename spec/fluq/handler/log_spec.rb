@@ -46,4 +46,11 @@ describe FluQ::Handler::Log do
     root.join("tag.special/20110812/06.log.gz").should be_file
   end
 
+  it 'should setup pool stale close timer' do
+    plain = described_class.new(path: "log/raw/%t/%Y%m%d/%H.log")
+    plain.on_event(event)
+    FluQ.timers.to_a.last.fire(Time.now.to_i + 61)
+    subject.send(:file_pool).handles.should be_empty
+  end
+
 end

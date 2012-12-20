@@ -31,7 +31,9 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     end
 
     def file_pool
-      @file_pool ||= FluQ::Handler::Log::FilePool.new(gzip: @gzip)
+      @file_pool ||= FluQ::Handler::Log::FilePool.new(gzip: @gzip).tap do |pool|
+        FluQ.timers.every(60, &pool.method(:close_stale))
+      end
     end
 
 end
