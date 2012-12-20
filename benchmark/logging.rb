@@ -16,7 +16,7 @@ central = FluQ::Reactor.new
 output  = FluQ.root.join("log/benchmark/file.log")
 
 QUEUE   = Queue.new
-EVENTS  = 1_000_000
+EVENTS  = 100_000
 LIMIT   = (event.to_s.size + 1) * EVENTS
 
 EVENTS.times { QUEUE.push(packed) }
