@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
     s.platform = "java"
     s.add_dependency "msgpack-jruby"
   else
-    s.add_dependency "msgpack"
+    s.add_dependency "msgpack", "~> 0.5.0"
   end
   s.add_dependency "celluloid-io", "~> 0.12.1"
   s.add_dependency "atomic"
