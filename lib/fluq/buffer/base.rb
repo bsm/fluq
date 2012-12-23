@@ -18,7 +18,7 @@ class FluQ::Buffer::Base
     @rate     = handler.config[:flush_rate].to_i
     @rate     = 100_000 unless (1..100_000).include?(@rate)
     @size     = Atomic.new(0)
-    @flusher  = handler.reactor.timers.every(interval) { flush } if interval > 0
+    @flusher  = handler.reactor.scheduler.every(interval) { flush } if interval > 0
   end
 
   # Flushes the buffer

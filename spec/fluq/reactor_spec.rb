@@ -6,8 +6,7 @@ describe FluQ::Reactor do
   it              { should be_a(Celluloid) }
   its(:handlers)  { should == {} }
   its(:actors)    { should == [] }
-  its(:timers)    { should be_instance_of(Timers) }
-  its(:scheduler) { should be_instance_of(Thread) }
+  its(:scheduler) { should be_instance_of(FluQ::Scheduler) }
 
   def events(*tags)
     tags.map do |tag|
