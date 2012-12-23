@@ -4,15 +4,16 @@ $:.unshift(File.expand_path('../../lib', __FILE__))
 
 require 'bundler/setup'
 require 'benchmark'
+require 'fluq'
+
+FileUtils.rm_rf FluQ.root.join("tmp/benchmark")
+FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
 EVENTS  = 1_000_000
 OUTPUT  = "log/benchmark/file.log"
 
 # Fork worker reactor
 worker = fork do
-  require 'fluq'
-  FileUtils.rm_rf FluQ.root.join("tmp/benchmark")
-
   reactor = FluQ::Reactor.new
   reactor.listen FluQ::Input::Socket,
     bind: "tcp://127.0.0.1:30303"
@@ -27,8 +28,6 @@ end
 
 # Fork collector reactor
 collector = fork do
-  require 'fluq'
-  FileUtils.rm_rf FluQ.root.join("log/benchmark")
   reactor = FluQ::Reactor.new
   reactor.listen FluQ::Input::Socket,
     bind: "tcp://127.0.0.1:30304"
@@ -39,7 +38,6 @@ end
 
 # Wait for reactors to start
 sleep(1)
-require 'fluq'
 
 output  = FluQ.root.join(OUTPUT)
 counter = lambda { output.file? ? `cat #{output} | wc -l`.to_i : 0 }
