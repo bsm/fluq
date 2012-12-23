@@ -9,9 +9,9 @@ class FluQ::Handler::Buffered < FluQ::Handler::Base
     @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self, config[:buffer_options] || {})
   end
 
-  # @see FluQ::Handler::Base#on_event
-  def on_event(event)
-    buffer.push event
+  # @see FluQ::Handler::Base#on_events
+  def on_events(events)
+    buffer.concat(events)
   end
 
   # @abstract callback, called on each flush

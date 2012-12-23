@@ -23,8 +23,8 @@ class FluQ::Buffer::Base
 
   # Flushes the buffer
   def flush
-    @size.update {|*| 0 }
     shift do |buffer, opts|
+      @size.update {|v| v - buffer.size }
       logger.debug { "#{self.class.name}#flush size: #{buffer.size}" }
       begin
         handler.on_flush(buffer)
@@ -37,10 +37,10 @@ class FluQ::Buffer::Base
   end
 
   # @abstract
-  # @param [FluQ::Event] an event to buffer
-  def push(event)
-    on_event(event)
-    @size.update {|v| v + 1 }
+  # @param [Array<FluQ::Event>] events events to buffer
+  def concat(events)
+    on_events(events)
+    @size.update {|v| v + events.size }
     unless size < rate
       timer.reset if timer
       flush
@@ -56,8 +56,8 @@ class FluQ::Buffer::Base
   protected
 
     # @abstract
-    # On event callback
-    def on_event(event)
+    # On events callback
+    def on_events(events)
     end
 
     # @abstract

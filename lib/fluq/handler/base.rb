@@ -33,9 +33,15 @@ class FluQ::Handler::Base
     File.fnmatch? config[:pattern], tag.to_s
   end
 
+  # @param [Array<FluQ::Event>] events
+  # @return [Array<FluQ::Event>] matching events
+  def select(events)
+    events.select {|e| match?(e.tag) }
+  end
+
   # @abstract callback, called on each event
-  # @param [FluQ::Event] the event
-  def on_event(event)
+  # @param [Array<FluQ::Event>] the event stream
+  def on_events(events)
   end
 
   protected

@@ -13,10 +13,6 @@ describe FluQ::Buffer::File::Writer do
     acc
   end
 
-  def total_events
-    (subject.glob(:open) + subject.glob(:closed)).map {|n| read(n).size }.inject(0, :+)
-  end
-
   it { should be_a(Celluloid) }
   its(:root)    { should == path }
   its(:current) { should be_instance_of(File) }
@@ -74,12 +70,12 @@ describe FluQ::Buffer::File::Writer do
   end
 
   it "should rotate files" do
-    subject.send(:write, event)
+    subject.send(:write, [event])
     lambda { subject.send(:rotate) }.should change {
       [subject.glob(:closed).size, subject.glob(:open).size]
     }.from([0, 1]).to([1, 0])
 
-    subject.send(:write, event)
+    subject.send(:write, [event])
     lambda { subject.send(:rotate) }.should change {
       [subject.glob(:closed).size, subject.glob(:open).size]
     }.from([1, 1]).to([2, 0])
@@ -87,13 +83,13 @@ describe FluQ::Buffer::File::Writer do
 
   it "should rotate only if needed" do
     subject.send(:rotate).should be(false)
-    subject.send(:write, event)
+    subject.send(:write, [event])
     subject.send(:rotate).should be(true)
     subject.send(:rotate).should be(false)
   end
 
   it "should write events" do
-    5.times { subject.send(:write, event) }
+    subject.send(:write, [event] * 5)
     subject.rotate
 
     written = []
@@ -101,18 +97,6 @@ describe FluQ::Buffer::File::Writer do
       written += read(path)
     end
     written.should == [event.to_a] * 5
-  end
-
-  it "should rotate files safely" do
-    lambda {
-      t1 = Thread.new { 64.times { subject.write!(event) } }
-      t2 = Thread.new { 8.times { subject.rotate! } }
-      t3 = Thread.new { 64.times { subject.write!(event) } }
-      [t1, t2, t3].each(&:join)
-    }.should_not raise_error
-
-    FluQ::Testing.wait_until(tick: 0.05) { total_events == 128 }
-    total_events.should == 128
   end
 
 end

@@ -1,4 +1,5 @@
 class FluQ::Reactor
+  include FluQ::Mixins::Loggable
 
   # attr_reader [Celluloid::SupervisionGroup] inputs
   attr_reader :inputs
@@ -16,7 +17,7 @@ class FluQ::Reactor
   # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
-    FluQ.logger.info "Listening to #{klass.name}"
+    logger.info "Listening to #{klass.name}"
     member = inputs.supervise(klass, self, *args)
     member.actor
   end
@@ -25,15 +26,18 @@ class FluQ::Reactor
   # @param [Class<FluQ::Handler::Base>] klass handler class
   # @param [multiple] args initialization arguments
   def register(klass, *args)
-    FluQ.logger.info "Registered #{klass.name}"
+    logger.info "Registered #{klass.name}"
     handler = klass.new(*args)
     raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option" if handlers.key?(handler.name)
     handlers[handler.name] = handler
   end
 
-  # @see FluQ::Event#initialize
-  def process(event)
-    handlers.each {|_, handler| handler.on_event(event) if handler.match?(event) }
+  # @param [Array<Event>] events to process
+  def process(events)
+    handlers.each do |_, handler|
+      matching = handler.select(events)
+      handler.on_events(matching) unless matching.empty?
+    end
     true
   end
 

@@ -3,56 +3,81 @@
 $:.unshift(File.expand_path('../../lib', __FILE__))
 
 require 'bundler/setup'
-require 'fluq'
 require 'benchmark'
 
-FileUtils.rm_rf FluQ.root.join("tmp/benchmark")
-FileUtils.rm_rf FluQ.root.join("log/benchmark")
+EVENTS  = 1_000_000
+OUTPUT  = "log/benchmark/file.log"
 
-event   = FluQ::Event.new "some.tag", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
-packed  = event.encode
-local   = FluQ::Reactor.new
-central = FluQ::Reactor.new
-output  = FluQ.root.join("log/benchmark/file.log")
+# Fork worker reactor
+worker = fork do
+  require 'fluq'
+  FileUtils.rm_rf FluQ.root.join("tmp/benchmark")
 
-QUEUE   = Queue.new
-EVENTS  = 100_000
-LIMIT   = (event.to_s.size + 1) * EVENTS
+  reactor = FluQ::Reactor.new
+  reactor.listen FluQ::Input::Socket,
+    bind: "tcp://127.0.0.1:30303"
+  reactor.register FluQ::Handler::Forward,
+    to: "tcp://127.0.0.1:30304",
+    buffer: "file",
+    buffer_options: { path: "tmp/benchmark" },
+    flush_interval: 2,
+    flush_rate: 10_000
+  sleep
+end
 
-EVENTS.times { QUEUE.push(packed) }
+# Fork collector reactor
+collector = fork do
+  require 'fluq'
+  FileUtils.rm_rf FluQ.root.join("log/benchmark")
+  reactor = FluQ::Reactor.new
+  reactor.listen FluQ::Input::Socket,
+    bind: "tcp://127.0.0.1:30304"
+  reactor.register FluQ::Handler::Log,
+    path: OUTPUT
+  sleep
+end
 
-local.listen FluQ::Input::Socket,
-  bind: "tcp://127.0.0.1:30303"
-local.register FluQ::Handler::Forward,
-  to: "tcp://127.0.0.1:30304",
-  buffer: "file",
-  buffer_options: { path: "tmp/benchmark" },
-  flush_rate: 10_000
+# Wait for reactors to start
+sleep(1)
+require 'fluq'
 
-central.listen FluQ::Input::Socket,
-  bind: "tcp://127.0.0.1:30304"
-central.register FluQ::Handler::Log,
-  path: "log/benchmark/file.log"
+output  = FluQ.root.join(OUTPUT)
+counter = lambda { output.file? ? `cat #{output} | wc -l`.to_i : 0 }
 
-dispatched = Benchmark.realtime do
+# Fork client process
+client  = fork do
+  queue  = Queue.new
+  event  = FluQ::Event.new "some.tag", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
+  packed = event.encode
+  EVENTS.times { queue.push(packed) }
+
   (0...5).map do
-    Thread.new do |thread|
+    Thread.new do
       socket = TCPSocket.new "127.0.0.1", "30303"
-      while chunk = (QUEUE.pop(true) rescue nil)
+      while chunk = (queue.pop(true) rescue nil)
         socket.write(chunk)
       end
       socket.close
     end
   end.each(&:join)
 end
-puts "Dispatched in #{dispatched.round(1)}s"
+
+dispatched  = Benchmark.realtime do
+  Process.wait(client)
+end
 
 received = Benchmark.realtime do
-  file_pool = central.handlers.values.first.send(:file_pool)
-  output_handle = file_pool.handles.values.first
-  sleep(1)
-  sleep(0.1) while output_handle.atime > Time.now.to_i - 1 # no writes for 1 second - done
-  file_pool.finalize
+  while (count = counter.call) < EVENTS
+    FluQ.logger.debug "Processed #{count} events"
+    sleep(1)
+  end
 end
-puts "Completed in #{(dispatched + received).round(1)}s"
-puts "Used memory #{(`ps -o rss= -p #{Process.pid}`.to_f / 1024).round(2)} Mb, produced #{(output.size / 1024).round(2)} Mb output file"
+
+puts "   Dispatched in : #{dispatched.round(1)}s"
+puts "   Completed in  : #{(dispatched + received).round(1)}s"
+puts "   Worker RSS    : #{(`ps -o rss= -p #{worker}`.to_f / 1024).round(1)}M"
+puts "   Collector RSS : #{(`ps -o rss= -p #{collector}`.to_f / 1024).round(1)}M"
+puts "   Processed     : #{counter.call} events"
+
+Process.kill(:TERM, worker)
+Process.kill(:TERM, collector)

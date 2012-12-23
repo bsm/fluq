@@ -6,6 +6,12 @@ describe FluQ::Reactor do
   its(:handlers) { should == {} }
   its(:inputs)   { should be_a(Celluloid) }
 
+  def events(*tags)
+    tags.map do |tag|
+      FluQ::Event.new(tag, 1313131313, {})
+    end
+  end
+
   it "should listen to inputs" do
     server = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
     subject.inputs.should have(1).actors
@@ -30,7 +36,7 @@ describe FluQ::Reactor do
   it "should process events" do
     h1 = subject.register(FluQ::Handler::Test)
     h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
-    subject.process(FluQ::Event.new("tag", 1313131313, {})).should be(true)
+    subject.process(events("tag")).should be(true)
 
     FluQ::Testing.wait_until { h1.events.size > 0 }
     h1.events.should == [["tag", 1313131313, {}]]
@@ -38,9 +44,11 @@ describe FluQ::Reactor do
   end
 
   it "should skip not matching events" do
-    h1 = subject.register FluQ::Handler::Test, pattern: "NONE"
-    FluQ::Testing.wait_until { false }
-    h1.events.should == []
+    h1 = subject.register FluQ::Handler::Test, pattern: "some*"
+    subject.process(events("some.tag", "other.tag", "something.else")).should be(true)
+    FluQ::Testing.wait_until { h1.events.size > 1 }
+    h1.events.should == [["some.tag", 1313131313, {}], ["something.else", 1313131313, {}]
+    ]
   end
 
 end

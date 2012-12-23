@@ -54,17 +54,17 @@ describe FluQ::Buffer::File do
   end
 
   it "should accept new events" do
-    10.times { subject.push(event) }
+    subject.concat [event] * 10
     rotate!
     events(Dir[root.join("*")].first).should have(10).items
   end
 
   it "should flush safely" do
-    5.times { subject.push(event) }
+    subject.concat [event] * 5
     rotate!
-    6.times { subject.push(event) }
+    subject.concat [event] * 6
     rotate!
-    7.times { subject.push(event) }
+    subject.concat [event] * 7
 
     events = []
     handler.should_receive(:on_flush).exactly(3).times.with {|e| events += e }
@@ -79,10 +79,16 @@ describe FluQ::Buffer::File do
 
   it "should rotate files safely" do
     lambda {
-      t1 = Thread.new { 64.times { subject.push(event) } }
-      t2 = Thread.new { 8.times { rotate! } }
-      t3 = Thread.new { 64.times { subject.push(event) } }
-      [t1, t2, t3].each(&:join)
+      [ Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { 8.times { rotate! } }
+      ].each(&:join)
     }.should_not raise_error
 
     FluQ::Testing.wait_until { total_events > 127 }

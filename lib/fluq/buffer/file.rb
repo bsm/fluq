@@ -33,9 +33,9 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
       @writer ||= supervisor.actors.first
     end
 
-    # @see FluQ::Buffer::Base#on_event
-    def on_event(event)
-      writer.async.write(event)
+    # @see FluQ::Buffer::Base#on_events
+    def on_events(events)
+      writer.write(events)
     end
 
     # @see FluQ::Buffer::Base#shift

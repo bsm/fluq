@@ -19,8 +19,8 @@ class FluQ::Handler::Test < FluQ::Handler::Base
     @events = []
   end
 
-  def on_event(event)
-    @events << event
+  def on_events(events)
+    @events += events
   end
 end
 
@@ -33,8 +33,8 @@ class FluQ::Handler::TestBuffered < FluQ::Handler::Buffered
     @flushed = []
   end
 
-  def on_event(event)
-    @events << event
+  def on_events(events)
+    @events += events
   end
 
   def on_flush(events)

@@ -9,7 +9,7 @@ describe FluQ::Handler::Buffered do
 
   it 'should buffer events' do
     lambda {
-      subject.on_event(FluQ::Event.new("tag", Time.now.to_i, {}))
+      subject.on_events [FluQ::Event.new("tag", Time.now.to_i, {})]
     }.should change { subject.buffer.size }.by(1)
   end
 

@@ -72,10 +72,10 @@ class FluQ::Buffer::File::Writer
     !!archive(Pathname.new(path))
   end
 
-  # Writes event, can be called asynchronously
-  # @param [FluQ::Event] event
-  def write(event)
-    binary = event.encode
+  # Writes events, can be called asynchronously
+  # @param [Array<FluQ::Event>] events
+  def write(events)
+    binary = events.map(&:encode).join
     rotate if current.pos + binary.bytesize > limit
     current.write(binary)
   end

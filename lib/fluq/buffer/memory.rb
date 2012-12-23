@@ -10,12 +10,12 @@ class FluQ::Buffer::Memory < FluQ::Buffer::Base
 
   protected
 
-    def on_event(event)
-      store.push(event)
+    def on_events(events)
+      store.concat(events)
     end
 
     def shift
-      yield(store.shift(rate), {})
+      yield(store.shift(size), {})
     end
 
     def revert(buffer, *)

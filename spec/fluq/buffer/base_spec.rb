@@ -3,6 +3,7 @@ require 'spec_helper'
 describe FluQ::Buffer::Base do
 
   let(:handler) { FluQ::Handler::TestBuffered.new flush_rate: 2, buffer: 'memory' }
+  let(:event)   { FluQ::Event.new("t", Time.now.to_i, {}) }
   subject       { handler.send(:buffer) }
 
   it_behaves_like "a buffer"
@@ -19,19 +20,19 @@ describe FluQ::Buffer::Base do
 
   it 'should flush when rate is reached' do
     lambda {
-      subject.push FluQ::Event.new("t", Time.now.to_i, {})
+      subject.concat [event]
     }.should_not change { handler.flushed }
 
     original = subject.send(:timer).time
     sleep(0.01)
     lambda {
-      subject.push FluQ::Event.new("t", Time.now.to_i, {})
+      subject.concat [event]
     }.should change { handler.flushed.size }.by(1)
     subject.send(:timer).time.should > original # Should reset time too
   end
 
   it 'should flush when interval reached' do
-    subject.push FluQ::Event.new("t", Time.now.to_i, {})
+    subject.concat [event]
     lambda {
       subject.send(:timer).fire
     }.should change { handler.flushed.size }.by(1)
@@ -40,12 +41,12 @@ describe FluQ::Buffer::Base do
   describe "flushing" do
 
     it 'should clear flushed events' do
-      subject.push FluQ::Event.new("t", Time.now.to_i, {})
+      subject.concat [event]
       lambda { subject.flush }.should change(subject, :size).to(0)
     end
 
     it 'should keep events if flush fails' do
-      subject.push FluQ::Event.new("t", Time.now.to_i, {})
+      subject.concat [event]
       handler.should_receive(:on_flush).and_raise(FluQ::Handler::Buffered::FlushError)
       lambda { subject.flush }.should_not change(subject, :size).from(1)
     end

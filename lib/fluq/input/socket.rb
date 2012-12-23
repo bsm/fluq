@@ -44,8 +44,9 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   # Handle an incoming connection
   def handle_connection(socket)
-    pac = FluQ::Event::Unpacker.new(socket)
-    pac.each {|event| reactor.process(event) }
+    FluQ::Event::Unpacker.new(socket).each_slice(1_000) do |slice|
+      reactor.process(slice)
+    end
   end
 
   protected
