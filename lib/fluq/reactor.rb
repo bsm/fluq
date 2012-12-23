@@ -35,7 +35,7 @@ class FluQ::Reactor < Celluloid::SupervisionGroup
   def process(events)
     handlers.each do |_, handler|
       matching = handler.select(events)
-      handler.on_events(matching) unless matching.empty?
+      handler.async.on_events(matching) unless matching.empty?
     end
     true
   end
