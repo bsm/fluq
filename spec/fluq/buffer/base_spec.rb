@@ -10,12 +10,12 @@ describe FluQ::Buffer::Base do
   it               { should be_a(described_class) }
   it               { should be_a(FluQ::Mixins::Loggable) }
   its(:handler)    { should be(handler) }
-  its(:timer)      { should be_instance_of(Timers::Timer) }
+  its(:flusher)    { should be_instance_of(Timers::Timer) }
   its(:interval)   { should be(60) }
   its(:rate)       { should be(2) }
 
   it 'should limit rate' do
-    FluQ::Handler::TestBuffered.new(flush_rate: 200_000).send(:buffer).send(:rate).should == 100_000
+    FluQ::Handler::TestBuffered.new(reactor.current_actor, flush_rate: 200_000).send(:buffer).send(:rate).should == 100_000
   end
 
   it 'should flush when rate is reached' do
@@ -23,18 +23,18 @@ describe FluQ::Buffer::Base do
       subject.concat [event]
     }.should_not change { handler.flushed }
 
-    original = subject.send(:timer).time
+    original = subject.send(:flusher).time
     sleep(0.01)
     lambda {
       subject.concat [event]
     }.should change { handler.flushed.size }.by(1)
-    subject.send(:timer).time.should > original # Should reset time too
+    subject.send(:flusher).time.should > original # Should reset time too
   end
 
   it 'should flush when interval reached' do
     subject.concat [event]
     lambda {
-      subject.send(:timer).fire
+      subject.send(:flusher).fire
     }.should change { handler.flushed.size }.by(1)
   end
 

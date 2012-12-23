@@ -3,9 +3,11 @@ require 'spec_helper'
 describe FluQ::Reactor do
   subject { reactor }
 
-  it             { should be_a(Celluloid) }
-  its(:handlers) { should == {} }
-  its(:actors)   { should == [] }
+  it              { should be_a(Celluloid) }
+  its(:handlers)  { should == {} }
+  its(:actors)    { should == [] }
+  its(:timers)    { should be_instance_of(Timers) }
+  its(:scheduler) { should be_instance_of(Thread) }
 
   def events(*tags)
     tags.map do |tag|

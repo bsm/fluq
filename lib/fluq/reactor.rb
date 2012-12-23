@@ -4,9 +4,28 @@ class FluQ::Reactor < Celluloid::SupervisionGroup
   # attr_reader [Hash] handlers
   attr_reader :handlers
 
+  # attr_reader [Timers] timers
+  attr_reader :timers
+
+  # attr_reader [Thread] scheduler
+  attr_reader :scheduler
+
   def initialize
     super
-    @handlers = {}
+    @handlers  = {}
+    @timers    = Timers.new
+
+    # Start background thread to fire timers
+    @scheduler = Thread.new do
+      loop do
+        begin
+          sleep(1) while timers.empty?
+          timers.wait
+        rescue => e
+          logger.warn { "Timer task failed: #{e}" }
+        end
+      end
+    end
   end
 
   # Listens to an input

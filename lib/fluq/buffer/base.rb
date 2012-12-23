@@ -2,8 +2,8 @@ class FluQ::Buffer::Base
   extend Forwardable
   include FluQ::Mixins::Loggable
 
-  attr_reader :handler, :rate, :timer, :interval
-  private     :handler, :rate, :timer, :interval
+  attr_reader :handler, :rate, :flusher, :interval
+  private     :handler, :rate, :flusher, :interval
 
   # @attr_reader [Hash] config configuration
   attr_reader :config
@@ -18,7 +18,7 @@ class FluQ::Buffer::Base
     @rate     = handler.config[:flush_rate].to_i
     @rate     = 100_000 unless (1..100_000).include?(@rate)
     @size     = Atomic.new(0)
-    @timer    = FluQ.timers.every(interval) { flush } if interval > 0
+    @flusher  = handler.reactor.timers.every(interval) { flush } if interval > 0
   end
 
   # Flushes the buffer
@@ -42,7 +42,7 @@ class FluQ::Buffer::Base
     on_events(events)
     @size.update {|v| v + events.size }
     unless size < rate
-      timer.reset if timer
+      flusher.reset if flusher
       flush
     end
   end

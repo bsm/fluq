@@ -35,7 +35,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # @see FluQ::Buffer::Base#shift
     def shift
-      writer.async.rotate
+      writer.rotate
       writer.glob :closed do |path|
         reserved = writer.reserve(path)
         next unless reserved

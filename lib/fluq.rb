@@ -13,10 +13,8 @@ module FluQ
 
     # @attr_reader [String] env runtime environemnt
     # @attr_reader [Pathname] root project root
-    # @attr_reader [Timers] timers global timers
-    # @attr_reader [Thread] scheduler background scheduler
     # @attr_reader [Logger] logger the main logger
-    attr_reader :env, :root, :timers, :scheduler, :logger
+    attr_reader :env, :root, :logger
 
     # @param [Logger] instance the thread-safe logger instance
     def logger=(instance)
@@ -30,24 +28,9 @@ module FluQ
       # Set root path
       @root = Pathname.new(ENV['FLUQ_ROOT'] || ".")
 
-      # Initialize timers
-      @timers = Timers.new
-
       # Setup logger
       self.logger  = ::Logger.new(STDOUT)
       logger.level = ::Logger::INFO if env == "production"
-
-      # Start background thread to fire timers
-      @scheduler = Thread.new do
-        loop do
-          begin
-            sleep(1) while timers.empty?
-            timers.wait
-          rescue => e
-            logger.warn { "Timer task failed: #{e}" }
-          end
-        end
-      end
     end
     protected :init!
 
