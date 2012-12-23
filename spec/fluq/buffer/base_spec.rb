@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Buffer::Base do
 
-  let(:handler) { FluQ::Handler::TestBuffered.new flush_rate: 2, buffer: 'memory' }
+  let(:handler) { FluQ::Handler::TestBuffered.new reactor.current_actor, flush_rate: 2, buffer: 'memory' }
   let(:event)   { FluQ::Event.new("t", Time.now.to_i, {}) }
   subject       { handler.send(:buffer) }
 

@@ -2,11 +2,15 @@ require 'digest/md5'
 
 class FluQ::Handler::Base
   include FluQ::Mixins::Loggable
+  include Celluloid
 
   # @return [String] handler type
   def self.type
     @type ||= name.split("::")[-1].downcase
   end
+
+  # @attr_reader [FluQ::Reactor] reactor reference
+  attr_reader :reactor
 
   # @attr_reader [String] name unique name
   attr_reader :name
@@ -23,9 +27,10 @@ class FluQ::Handler::Base
   #   end
   #   MyHandler.new(pattern: "visits.*")
   #
-  def initialize(options = {})
-    @config = defaults.merge(options)
-    @name   = config[:name] || generate_name
+  def initialize(reactor, options = {})
+    @reactor = reactor
+    @config  = defaults.merge(options)
+    @name    = config[:name] || generate_name
   end
 
   # @return [Boolean] true if tag matches

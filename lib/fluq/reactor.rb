@@ -1,15 +1,11 @@
-class FluQ::Reactor
+class FluQ::Reactor < Celluloid::SupervisionGroup
   include FluQ::Mixins::Loggable
-
-  # attr_reader [Celluloid::SupervisionGroup] inputs
-  attr_reader :inputs
 
   # attr_reader [Hash] handlers
   attr_reader :handlers
 
-  def initialize(*)
+  def initialize
     super
-    @inputs   = Celluloid::SupervisionGroup.new
     @handlers = {}
   end
 
@@ -18,8 +14,7 @@ class FluQ::Reactor
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
     logger.info "Listening to #{klass.name}"
-    member = inputs.supervise(klass, self, *args)
-    member.actor
+    supervise(klass, current_actor, *args).actor
   end
 
   # Registers a handler
@@ -27,7 +22,7 @@ class FluQ::Reactor
   # @param [multiple] args initialization arguments
   def register(klass, *args)
     logger.info "Registered #{klass.name}"
-    handler = klass.new(*args)
+    handler = supervise(klass, current_actor, *args).actor
     raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option" if handlers.key?(handler.name)
     handlers[handler.name] = handler
   end

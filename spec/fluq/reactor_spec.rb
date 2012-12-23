@@ -3,8 +3,9 @@ require 'spec_helper'
 describe FluQ::Reactor do
   subject { reactor }
 
+  it             { should be_a(Celluloid) }
   its(:handlers) { should == {} }
-  its(:inputs)   { should be_a(Celluloid) }
+  its(:actors)   { should == [] }
 
   def events(*tags)
     tags.map do |tag|
@@ -14,16 +15,18 @@ describe FluQ::Reactor do
 
   it "should listen to inputs" do
     server = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
-    subject.inputs.should have(1).actors
+    subject.should have(1).actors
     server.terminate
   end
 
   it "should register handlers" do
     h1 = subject.register(FluQ::Handler::Buffered)
     subject.handlers.should == { "buffered-M4na42" => h1 }
+    subject.should have(1).actors
 
     h2 = subject.register(FluQ::Handler::Buffered, name: "specific")
     subject.handlers.should == { "buffered-M4na42" => h1, "specific" => h2 }
+    subject.should have(2).actors
   end
 
   it "should prevent duplicates" do

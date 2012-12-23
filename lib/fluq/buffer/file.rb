@@ -1,12 +1,12 @@
 class FluQ::Buffer::File < FluQ::Buffer::Base
 
-  # @attr_reader [Celluloid::SupervisionGroup] supervisor
-  attr_reader :supervisor
+  # @attr_reader [FluQ::Buffer::File::Writer] writer
+  attr_reader :writer
 
   # @see FluQ::Buffer::Base#initialize
   def initialize(*)
     super
-    @supervisor = FluQ::Buffer::File::Writer.supervise(config[:path], config[:max_size].to_i)
+    @writer = FluQ::Buffer::File::Writer.new(config[:path], config[:max_size].to_i)
 
     # Archive all open files
     writer.glob :open do |path|
@@ -27,11 +27,6 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
   end
 
   protected
-
-    # @return [FluQ::Buffer::File::Writer] thread-safe buffer writer
-    def writer
-      @writer ||= supervisor.actors.first
-    end
 
     # @see FluQ::Buffer::Base#on_events
     def on_events(events)

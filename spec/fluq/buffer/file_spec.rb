@@ -2,18 +2,13 @@ require 'spec_helper'
 
 describe FluQ::Buffer::File do
 
-  let(:handler) { FluQ::Handler::Buffered.new name: "file_test", buffer: "file" }
+  let(:handler) { FluQ::Handler::Buffered.new reactor.current_actor, name: "file_test", buffer: "file" }
   let(:root)    { FluQ.root.join("../scenario/tmp/buffers/file_test") }
   let(:event)   { FluQ::Event.new("tag", 1313131313, { "a" => "1" }) }
   let(:writer)  { subject.send :writer }
 
   subject       { handler.send(:buffer) }
   before        { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
-
-  # Force file rotation
-  def rotate!
-    writer.send(:rotate)
-  end
 
   def events(path)
     FluQ::Event::Unpacker.new(File.open(path)).to_a
@@ -25,7 +20,6 @@ describe FluQ::Buffer::File do
 
   it_behaves_like "a buffer"
   it { should be_a(FluQ::Buffer::Base) }
-  its(:supervisor) { should be_a(Celluloid::SupervisionGroup) }
   its(:writer) { should be_a(described_class::Writer) }
   its(:config) { should == { path: "tmp/buffers/file_test", max_size: 134217728 } }
 
@@ -55,15 +49,15 @@ describe FluQ::Buffer::File do
 
   it "should accept new events" do
     subject.concat [event] * 10
-    rotate!
+    writer.rotate
     events(Dir[root.join("*")].first).should have(10).items
   end
 
   it "should flush safely" do
     subject.concat [event] * 5
-    rotate!
+    writer.rotate
     subject.concat [event] * 6
-    rotate!
+    writer.rotate
     subject.concat [event] * 7
 
     events = []
@@ -87,7 +81,7 @@ describe FluQ::Buffer::File do
         Thread.new { subject.concat [event] * 16 },
         Thread.new { subject.concat [event] * 16 },
         Thread.new { subject.concat [event] * 16 },
-        Thread.new { 8.times { rotate! } }
+        Thread.new { 8.times { writer.rotate } }
       ].each(&:join)
     }.should_not raise_error
 

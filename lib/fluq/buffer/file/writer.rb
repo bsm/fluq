@@ -1,6 +1,5 @@
 # Thread-safe writer
 class FluQ::Buffer::File::Writer
-  include Celluloid
 
   # @attr_reader [Pathname] root the root path
   attr_reader :root
@@ -72,7 +71,7 @@ class FluQ::Buffer::File::Writer
     !!archive(Pathname.new(path))
   end
 
-  # Writes events, can be called asynchronously
+  # Writes events
   # @param [Array<FluQ::Event>] events
   def write(events)
     binary = events.map(&:encode).join

@@ -6,7 +6,7 @@ class FluQ::Handler::Buffered < FluQ::Handler::Base
   # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self, config[:buffer_options] || {})
+    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(current_actor, config[:buffer_options] || {})
   end
 
   # @see FluQ::Handler::Base#on_events

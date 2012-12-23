@@ -7,7 +7,7 @@ describe FluQ::Handler::Forward do
   end
 
   subject do
-    described_class.new to: ["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"]
+    described_class.new reactor.current_actor, to: ["tcp://127.0.0.1:26712", "tcp://127.0.0.1:26713"]
   end
 
   it { should be_a(FluQ::Handler::Buffered) }

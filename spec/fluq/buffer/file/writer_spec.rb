@@ -13,7 +13,6 @@ describe FluQ::Buffer::File::Writer do
     acc
   end
 
-  it { should be_a(Celluloid) }
   its(:root)    { should == path }
   its(:current) { should be_instance_of(File) }
   its(:limit)   { should == 1024 }
