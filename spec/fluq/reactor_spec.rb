@@ -2,15 +2,6 @@ require 'spec_helper'
 
 describe FluQ::Reactor do
 
-  class FluQ::Handler::TestFailing < FluQ::Handler::Test
-
-    def on_events(events)
-      raise RuntimeError, "Failure!" if events.any? {|e| e.tag == "fail.now" }
-      super
-    end
-
-  end
-
   subject { reactor }
 
   its(:handlers)   { should == [] }
@@ -62,10 +53,11 @@ describe FluQ::Reactor do
   end
 
   it "should recover crashed handlers gracefully" do
-    h1 = subject.register(FluQ::Handler::TestFailing)
+    h1 = subject.register(FluQ::Handler::Test)
     10.times { subject.process(events("ok.now")) }
-    subject.process(events("fail.now"))
+    subject.process(events("error.event"))
     10.times { subject.process(events("ok.now")) }
+    FluQ::Testing.wait_until { h1.events.size > 19 }
     h1.should have(20).events
   end
 
