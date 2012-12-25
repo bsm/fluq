@@ -2,7 +2,6 @@ require 'digest/md5'
 
 class FluQ::Handler::Base
   include FluQ::Mixins::Loggable
-  include Celluloid
 
   # @return [String] handler type
   def self.type

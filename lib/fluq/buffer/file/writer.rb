@@ -57,10 +57,6 @@ class FluQ::Buffer::File::Writer
   rescue Errno::ENOENT
   end
 
-  def finalize
-    current.close unless current.closed?
-  end
-
   # Rotate the current file
   # @return [Boolean] true if successful
   def rotate
@@ -74,7 +70,7 @@ class FluQ::Buffer::File::Writer
   # Writes events
   # @param [Array<FluQ::Event>] events
   def write(events)
-    binary = events.map(&:encode).join
+    binary  = events.map(&:encode).join
     rotate if current.pos + binary.bytesize > limit
     current.write(binary)
   end

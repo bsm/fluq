@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Handler::Base do
 
-  subject { described_class.new reactor.current_actor }
+  subject { described_class.new reactor }
 
   it { should respond_to(:on_events) }
   it { should be_a(FluQ::Mixins::Loggable) }
@@ -21,11 +21,11 @@ describe FluQ::Handler::Base do
   end
 
   it 'can have custom names' do
-    described_class.new(reactor.current_actor, name: "visitors").name.should == "visitors"
+    described_class.new(reactor, name: "visitors").name.should == "visitors"
   end
 
   it 'should match tags correctly' do
-    subject = described_class.new(reactor.current_actor, pattern: "visits.????.*")
+    subject = described_class.new(reactor, pattern: "visits.????.*")
     subject.match?("visits.site.1").should be(true)
     subject.match?("visits.page.2").should be(true)
     subject.match?("visits.other.1").should be(false)
@@ -37,7 +37,7 @@ describe FluQ::Handler::Base do
 
   it 'should select events' do
     stream = events("visits.site.1", "visits.page.2", "visits.other.1", "visits.site.2")
-    described_class.new(reactor.current_actor, pattern: "visits.????.*").select(stream).map(&:tag).should == [
+    described_class.new(reactor, pattern: "visits.????.*").select(stream).map(&:tag).should == [
       "visits.site.1", "visits.page.2", "visits.site.2"
     ]
   end

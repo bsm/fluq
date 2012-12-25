@@ -20,7 +20,8 @@ class FluQ::Handler::Test < FluQ::Handler::Base
   end
 
   def on_events(events)
-    @events += events
+    @events.concat events
+    raise RuntimeError, "Test Failure!" if events.any? {|e| e.tag == "error.event" }
   end
 end
 
@@ -34,10 +35,12 @@ class FluQ::Handler::TestBuffered < FluQ::Handler::Buffered
   end
 
   def on_events(events)
-    @events += events
+    @events.concat events
+    raise RuntimeError, "Test Failure!" if events.any? {|e| e.tag == "error.event" }
   end
 
   def on_flush(events)
     @flushed << events
+    raise FluQ::Handler::Buffered::FlushError, "Test Failure!" if events.any? {|e| e.tag == "error.flush" }
   end
 end

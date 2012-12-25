@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Buffer::File do
 
-  let(:handler) { FluQ::Handler::Buffered.new reactor.current_actor, name: "file_test", buffer: "file" }
+  let(:handler) { FluQ::Handler::Buffered.new reactor, name: "file_test", buffer: "file" }
   let(:root)    { FluQ.root.join("../scenario/tmp/buffers/file_test") }
   let(:event)   { FluQ::Event.new("tag", 1313131313, { "a" => "1" }) }
   let(:writer)  { subject.send :writer }

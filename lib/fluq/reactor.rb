@@ -1,15 +1,19 @@
-class FluQ::Reactor < Celluloid::SupervisionGroup
+class FluQ::Reactor
   include FluQ::Mixins::Loggable
 
-  # attr_reader [Hash] handlers
+  # attr_reader [Array] handlers
   attr_reader :handlers
+
+  # attr_reader [FluQ::Supervisor] inputs
+  attr_reader :inputs
 
   # attr_reader [FluQ::Scheduler] scheduler
   attr_reader :scheduler
 
   def initialize
     super
-    @handlers  = {}
+    @handlers  = []
+    @inputs    = FluQ::Supervisor.new
     @scheduler = FluQ::Scheduler.new
   end
 
@@ -18,7 +22,7 @@ class FluQ::Reactor < Celluloid::SupervisionGroup
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
     logger.info "Listening to #{klass.name}"
-    supervise(klass, current_actor, *args).actor
+    inputs.supervise(klass, self, *args)
   end
 
   # Registers a handler
@@ -26,18 +30,31 @@ class FluQ::Reactor < Celluloid::SupervisionGroup
   # @param [multiple] args initialization arguments
   def register(klass, *args)
     logger.info "Registered #{klass.name}"
-    handler = supervise(klass, current_actor, *args).actor
-    raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option" if handlers.key?(handler.name)
-    handlers[handler.name] = handler
+
+    handler = klass.new(self, *args)
+    if handlers.any? {|h| h.name == handler.name }
+      raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option"
+    end
+    handlers.push(handler)
+    handler
   end
 
   # @param [Array<Event>] events to process
   def process(events)
-    handlers.each do |_, handler|
-      matching = handler.select(events)
-      handler.async.on_events(matching) unless matching.empty?
+    handlers.each do |handler|
+      begin
+        matching = handler.select(events)
+        handler.on_events(matching) unless matching.empty?
+      rescue => ex
+        Celluloid::Logger.crash "#{handler.class.name} #{handler.name} failed!", ex
+      end
     end
     true
+  end
+
+  # @return [String] instrospection
+  def inspect
+    "#<#{self.class.name} inputs: #{inputs.alive? ? inputs.size : 0}, handlers: #{handlers.size}>"
   end
 
 end

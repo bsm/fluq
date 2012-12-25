@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Handler::Buffered do
 
-  subject { described_class.new reactor.current_actor }
+  subject { described_class.new reactor }
 
   it { should be_a(FluQ::Handler::Base) }
   it { should respond_to(:on_flush) }

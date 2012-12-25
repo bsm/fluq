@@ -39,6 +39,6 @@ module FluQ
   init!
 end
 
-%w'version error mixins url scheduler event reactor handler buffer input dsl'.each do |name|
+%w'version error mixins supervisor url scheduler event reactor handler buffer input dsl'.each do |name|
   require "fluq/#{name}"
 end

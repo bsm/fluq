@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::Input::Base do
 
   subject do
-    described_class.new(reactor.current_actor)
+    described_class.new(reactor)
   end
 
   it { should be_a(FluQ::Mixins::Loggable) }

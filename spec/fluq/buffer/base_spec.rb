@@ -2,20 +2,20 @@ require 'spec_helper'
 
 describe FluQ::Buffer::Base do
 
-  let(:handler) { FluQ::Handler::TestBuffered.new reactor.current_actor, flush_rate: 2, buffer: 'memory' }
+  let(:handler) { FluQ::Handler::TestBuffered.new reactor, flush_rate: 2, buffer: 'memory' }
   let(:event)   { FluQ::Event.new("t", Time.now.to_i, {}) }
-  subject       { handler.send(:buffer) }
+  subject       { handler.buffer }
 
   it_behaves_like "a buffer"
   it               { should be_a(described_class) }
   it               { should be_a(FluQ::Mixins::Loggable) }
-  its(:handler)    { should be(handler) }
   its(:flusher)    { should be_instance_of(Timers::Timer) }
   its(:interval)   { should be(60) }
   its(:rate)       { should be(2) }
+  its(:handler)    { should be(handler) }
 
   it 'should limit rate' do
-    FluQ::Handler::TestBuffered.new(reactor.current_actor, flush_rate: 200_000).send(:buffer).send(:rate).should == 100_000
+    FluQ::Handler::TestBuffered.new(reactor, flush_rate: 200_000).send(:buffer).send(:rate).should == 100_000
   end
 
   it 'should flush when rate is reached' do
@@ -46,8 +46,7 @@ describe FluQ::Buffer::Base do
     end
 
     it 'should keep events if flush fails' do
-      subject.concat [event]
-      handler.should_receive(:on_flush).and_raise(FluQ::Handler::Buffered::FlushError)
+      subject.concat [FluQ::Event.new("error.flush", Time.now.to_i, {})]
       lambda { subject.flush }.should_not change(subject, :size).from(1)
     end
 
