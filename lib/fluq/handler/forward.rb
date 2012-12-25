@@ -38,13 +38,20 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
 
   private
 
+    # Rescueable Exceptions
+    FORWARD_EXCEPTIONS = [
+      Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::EHOSTUNREACH,
+      Errno::ENETUNREACH, Errno::ENETDOWN, Errno::EINVAL, Errno::ETIMEDOUT,
+      IOError, EOFError
+    ].freeze
+
     def do_forward(data)
       tried = [] # URLs we have tries
       begin
         url = (urls - tried).sample
         tried.push(url)
         connect(url) {|sock| sock.write(data) }
-      rescue Errno::ECONNREFUSED, IOError, EOFError => e
+      rescue *FORWARD_EXCEPTIONS => e
         FluQ.logger.error "Forwarding failed to backend #{url}: #{e.message}"
         raise FluQ::Handler::Buffered::FlushError, "Forwarding failed. No backends available." if (urls - tried).empty? # No more URLs to try
         retry
