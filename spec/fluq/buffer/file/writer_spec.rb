@@ -14,7 +14,8 @@ describe FluQ::Buffer::File::Writer do
   end
 
   its(:root)    { should == path }
-  its(:current) { should be_instance_of(File) }
+  its(:current) { should be_instance_of(Atomic) }
+  its(:current) { subject.value.should be_instance_of(File) }
   its(:limit)   { should == 1024 }
 
   it "should create the path" do
@@ -69,26 +70,26 @@ describe FluQ::Buffer::File::Writer do
   end
 
   it "should rotate files" do
-    subject.send(:write, [event])
-    lambda { subject.send(:rotate) }.should change {
+    subject.write [event]
+    lambda { subject.rotate }.should change {
       [subject.glob(:closed).size, subject.glob(:open).size]
-    }.from([0, 1]).to([1, 0])
+    }.from([0, 1]).to([1, 1])
 
-    subject.send(:write, [event])
-    lambda { subject.send(:rotate) }.should change {
+    subject.write [event]
+    lambda { subject.rotate }.should change {
       [subject.glob(:closed).size, subject.glob(:open).size]
-    }.from([1, 1]).to([2, 0])
+    }.from([1, 1]).to([2, 1])
   end
 
   it "should rotate only if needed" do
-    subject.send(:rotate).should be(false)
-    subject.send(:write, [event])
-    subject.send(:rotate).should be(true)
-    subject.send(:rotate).should be(false)
+    subject.rotate.should be(false)
+    subject.write [event]
+    subject.rotate.should be(true)
+    subject.rotate.should be(false)
   end
 
   it "should write events" do
-    subject.send(:write, [event] * 5)
+    subject.write [event] * 5
     subject.rotate
 
     written = []

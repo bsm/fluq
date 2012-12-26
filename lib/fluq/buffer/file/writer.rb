@@ -60,10 +60,14 @@ class FluQ::Buffer::File::Writer
   # Rotate the current file
   # @return [Boolean] true if successful
   def rotate
-    return false if current.pos == 0
+    return false if current.value.pos == 0
 
-    path = current.path
-    current.close
+    path = nil
+    current.update do |file|
+      path = file.path
+      file.close
+      new_file
+    end
     !!archive(Pathname.new(path))
   end
 
@@ -71,14 +75,13 @@ class FluQ::Buffer::File::Writer
   # @param [Array<FluQ::Event>] events
   def write(events)
     binary  = events.map(&:encode).join
-    rotate if current.pos + binary.bytesize > limit
-    current.write(binary)
+    rotate if current.value.pos + binary.bytesize > limit
+    current.value.write(binary)
   end
 
   # @attr_reader [File] the current buffer
   def current
-    @current = new_file if @current.nil? || @current.closed?
-    @current
+    @current ||= Atomic.new(new_file)
   end
 
   private

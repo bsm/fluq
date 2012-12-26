@@ -4,20 +4,19 @@ class FluQ::Event::Unpacker
   # @param [IO] io the IO to read from
   def initialize(io)
     super()
-    @io  = io
-    @pac = MessagePack::Unpacker.new(@io)
+    @pac = MessagePack::Unpacker.new(io)
   end
 
   # @yield over events
   # @yieldparam [Event] event
   def each
-    return if @io.closed?
+    return if @pac.buffer.io.closed?
 
     @pac.each do |tag, timestamp, record|
       yield FluQ::Event.new(tag, timestamp, record)
     end
   rescue EOFError
-    @io.close
+    @pac.buffer.io.close
   end
 
 end

@@ -10,8 +10,10 @@ describe FluQ::Buffer::File do
   subject       { handler.send(:buffer) }
   before        { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
-  def events(path)
-    FluQ::Event::Unpacker.new(File.open(path)).to_a
+  def events(*paths)
+    paths.map do |path|
+      FluQ::Event::Unpacker.new(File.open(path)).to_a
+    end.flatten
   end
 
   def total_events
@@ -50,7 +52,7 @@ describe FluQ::Buffer::File do
   it "should accept new events" do
     subject.concat [event] * 10
     writer.rotate
-    events(Dir[root.join("*")].first).should have(10).items
+    events(*Dir[root.join("*")]).should have(10).items
   end
 
   it "should flush safely" do
@@ -65,7 +67,7 @@ describe FluQ::Buffer::File do
 
     lambda { subject.flush }.should change {
       [subject, writer.glob(:open), writer.glob(:closed)].map(&:size)
-    }.from([18, 1, 2]).to([0, 0, 0])
+    }.from([18, 1, 2]).to([0, 1, 0])
     events.should have(18).items
     events.first.should be_a(FluQ::Event)
     events.first.should == event
