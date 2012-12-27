@@ -24,7 +24,10 @@ class FluQ::Input::Socket < FluQ::Input::Base
     @url    = FluQ::URL.parse(config[:bind], protocols)
     @server = case @url.scheme
     when 'tcp'
-      TCPServer.new(@url.host, @url.port)
+      TCPServer.new(@url.host, @url.port).tap do |s|
+        s.to_io.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+        s.to_io.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+      end
     when 'unix'
       UNIXServer.new(@url.path)
     end

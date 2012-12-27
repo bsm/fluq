@@ -1,5 +1,6 @@
 require "optparse"
 require "fileutils"
+require "socket"
 
 module FluQ
 
@@ -16,6 +17,9 @@ module FluQ
     def self.run
       if GC.respond_to?(:copy_on_write_friendly=)
         GC.copy_on_write_friendly = true
+      end
+      if BasicSocket.respond_to?(:do_not_reverse_lookup=)
+        BasicSocket.do_not_reverse_lookup = true
       end
       new.run
     end
