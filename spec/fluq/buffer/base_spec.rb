@@ -21,12 +21,14 @@ describe FluQ::Buffer::Base do
   it 'should flush when rate is reached' do
     lambda {
       subject.concat [event]
+      sleep(0.01)
     }.should_not change { handler.flushed }
 
     original = subject.send(:flusher).time
     sleep(0.01)
     lambda {
       subject.concat [event]
+      sleep(0.01)
     }.should change { handler.flushed.size }.by(1)
     subject.send(:flusher).time.should > original # Should reset time too
   end
@@ -35,6 +37,7 @@ describe FluQ::Buffer::Base do
     subject.concat [event]
     lambda {
       subject.send(:flusher).fire
+      sleep(0.01)
     }.should change { handler.flushed.size }.by(1)
   end
 
