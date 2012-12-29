@@ -41,12 +41,6 @@ describe FluQ::Buffer::File do
       }.from([true, false]).to([false, true])
     end
 
-    it "should count previous events" do
-      root.join("2012121212.abcd.open").open("wb") {|f| f.write(event.encode) }
-      root.join("2012121212.bcde.closed").open("wb") {|f| f.write(event.encode * 2) }
-      subject.size.should == 3
-    end
-
   end
 
   it "should accept new events" do

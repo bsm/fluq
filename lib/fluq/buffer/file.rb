@@ -17,13 +17,6 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     writer.glob :reserved do |path|
       writer.unreserve(path)
     end
-
-    # Count records from orphaned files
-    writer.glob :closed do |path|
-      path.open("r") do |io|
-        @size.update {|v| v + FluQ::Event::Unpacker.new(io).count }
-      end
-    end
   end
 
   protected
@@ -36,6 +29,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     # @see FluQ::Buffer::Base#shift
     def shift
       writer.rotate
+      shifted = 0
       writer.glob :closed do |path|
         reserved = writer.reserve(path)
         next unless reserved
@@ -44,7 +38,9 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
         reserved.open("r") do |io|
           events = FluQ::Event::Unpacker.new(io).to_a
         end
+        shifted += events.size
         yield(events, path: reserved)
+        break if shifted > 100_000
       end
     end
 

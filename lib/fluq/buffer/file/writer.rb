@@ -90,7 +90,7 @@ class FluQ::Buffer::File::Writer
     def new_file
       path = nil
       until path && !path.exist?
-        time = Time.now.utc.strftime("%Y%m%d%H")
+        time = Time.now.utc.strftime("%Y%m%d%H%m%s")
         hash = SecureRandom.hex(4)
         path = root.join("#{time}.#{hash}.open")
       end

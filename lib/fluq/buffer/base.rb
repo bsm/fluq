@@ -24,7 +24,7 @@ class FluQ::Buffer::Base
   # Flushes the buffer
   def flush
     shift do |buffer, opts|
-      @size.update {|v| v - buffer.size }
+      @size.update {|v| v > buffer.size ? v - buffer.size : 0 }
       logger.debug { "#{self.class.name}#flush size: #{buffer.size}" }
       begin
         handler.on_flush(buffer)
