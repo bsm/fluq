@@ -27,7 +27,7 @@ class FluQ::Buffer::Base
   def flush
     shift do |buffer, opts|
       @size.update {|v| v > buffer.size ? v - buffer.size : 0 }
-      logger.debug { "#{self.class.name}#flush size: #{buffer.size}" }
+      logger.debug { "#{self.class.name}#flush size: #{buffer.size}, opts: #{opts.inspect}" }
       begin
         handler.on_flush(buffer)
         commit(buffer, opts)
