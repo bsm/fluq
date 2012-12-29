@@ -21,7 +21,9 @@ class FluQ::Buffer::File::Writer
   # @param [Symbol<Pathname>] scope, either `:open`, `:closed` or `:reserved`
   # @yield [Pathname] path matching scope
   def glob(scope, &block)
-    Pathname.glob(scopes[scope], &block)
+    enum = Pathname.glob(scopes[scope]).sort
+    enum.each(&block) if block
+    enum
   end
 
   # @param [Pathname] path path to archive
