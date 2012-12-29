@@ -20,7 +20,7 @@ class FluQ::Buffer::Base
     @size     = Atomic.new(0)
 
     me = current_actor
-    @flusher  = handler.reactor.scheduler.every(interval) { me.async.flush } if interval > 0
+    @flusher  = every(interval) { me.async.flush } if interval > 0
   end
 
   # Flushes the buffer

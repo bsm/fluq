@@ -24,19 +24,21 @@ describe FluQ::Buffer::Base do
       sleep(0.01)
     }.should_not change { handler.flushed }
 
-    original = subject.send(:flusher).time
+    original = subject.flusher.time
     sleep(0.01)
     lambda {
       subject.concat [event]
       sleep(0.01)
     }.should change { handler.flushed.size }.by(1)
-    subject.send(:flusher).time.should > original # Should reset time too
+    subject.flusher.time.should > original # Should reset time too
   end
 
   it 'should flush when interval reached' do
-    subject.concat [event]
+    Time.stub now: (Time.now - 61)
+    subject
+    Time.unstub :now
     lambda {
-      subject.send(:flusher).fire
+      subject.concat [event]
       sleep(0.01)
     }.should change { handler.flushed.size }.by(1)
   end
