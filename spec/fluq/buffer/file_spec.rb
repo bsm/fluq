@@ -59,7 +59,10 @@ describe FluQ::Buffer::File do
     events = []
     handler.should_receive(:on_flush).exactly(3).times.with {|e| events += e }
 
-    lambda { subject.flush }.should change {
+    lambda {
+      subject.flush
+      FluQ::Testing.wait_until { events.size > 17 }
+    }.should change {
       [subject, writer.glob(:open), writer.glob(:closed)].map(&:size)
     }.from([18, 1, 2]).to([0, 1, 0])
     events.should have(18).items

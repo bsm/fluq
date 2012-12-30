@@ -19,6 +19,12 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     end
   end
 
+  # Rotate files before flush
+  def flush
+    writer.rotate
+    super
+  end
+
   protected
 
     # @see FluQ::Buffer::Base#on_events
@@ -28,7 +34,6 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # @see FluQ::Buffer::Base#shift
     def shift
-      writer.rotate
       shifted = 0
       writer.glob :closed do |path|
         reserved = writer.reserve(path)

@@ -50,9 +50,9 @@ describe FluQ::Buffer::Base do
       lambda { subject.flush }.should change(subject, :size).to(0)
     end
 
-    it 'should keep events if flush fails' do
-      subject.concat [FluQ::Event.new("error.flush", Time.now.to_i, {})]
-      lambda { subject.flush }.should_not change(subject, :size).from(1)
+    it 'should reset flusher thread' do
+      subject.concat [event]
+      lambda { subject.flush }.should change { subject.flusher.time }
     end
 
   end

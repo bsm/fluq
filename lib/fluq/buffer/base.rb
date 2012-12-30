@@ -20,22 +20,16 @@ class FluQ::Buffer::Base
     @size     = Atomic.new(0)
 
     me = current_actor
-    @flusher  = every(interval) { me.async.flush } if interval > 0
+    @flusher  = every(interval) { me.flush } if interval > 0
   end
 
   # Flushes the buffer
   def flush
-    shift do |buffer, opts|
-      @size.update {|v| v > buffer.size ? v - buffer.size : 0 }
-      logger.debug { "#{self.class.name}#flush size: #{buffer.size}, opts: #{opts.inspect}" }
-      begin
-        handler.on_flush(buffer)
-        commit(buffer, opts)
-      rescue FluQ::Handler::Buffered::FlushError => e
-        @size.update {|v| v + buffer.size }
-        revert(buffer, opts)
-      end
-    end
+    return if size.zero?
+
+    @size.update {|*| 0 }
+    flusher.reset if flusher
+    async.do_flush
   end
 
   # @abstract
@@ -44,8 +38,7 @@ class FluQ::Buffer::Base
     on_events(events)
     @size.update {|v| v + events.size }
     unless size < rate
-      flusher.reset if flusher
-      async.flush
+      flush
     end
   end
 
@@ -53,6 +46,19 @@ class FluQ::Buffer::Base
   # @return [Integer] size
   def size
     @size.value
+  end
+
+  # Execute flush, called async
+  def do_flush
+    shift do |buffer, opts|
+      logger.debug { "#{self.class.name}#flush size: #{buffer.size}" }
+      begin
+        handler.on_flush(buffer)
+        commit(buffer, opts)
+      rescue FluQ::Handler::Buffered::FlushError => e
+        revert(buffer, opts)
+      end
+    end
   end
 
   protected
