@@ -3,7 +3,7 @@ class FluQ::Buffer::Base
   include Celluloid
   include FluQ::Mixins::Loggable
 
-  attr_reader :handler, :rate, :flusher, :interval
+  attr_reader :handler, :rate, :interval
 
   # @attr_reader [Hash] config configuration
   attr_reader :config
@@ -19,16 +19,15 @@ class FluQ::Buffer::Base
     @rate     = 100_000 unless (1..100_000).include?(@rate)
     @size     = Atomic.new(0)
 
-    me = current_actor
-    @flusher  = every(interval) { me.flush } if interval > 0
+    every(interval) { flush } if interval > 0
   end
 
   # Flushes the buffer
   def flush
     return if size.zero?
 
-    @size.update {|*| 0 }
-    flusher.reset if flusher
+    @size.update {|_| 0 }
+    flusher.reset
     async.do_flush
   end
 
@@ -59,6 +58,11 @@ class FluQ::Buffer::Base
         revert(buffer, opts)
       end
     end
+  end
+
+  # @return [Timers::Timer] recurring flusher
+  def flusher
+    Thread.current[:actor].instance_variable_get(:@timers).first
   end
 
   protected

@@ -50,6 +50,9 @@ class FluQ::Input::Socket < FluQ::Input::Base
     FluQ::Event::Unpacker.new(socket).each_slice(100) do |slice|
       reactor.process(slice)
     end
+  rescue IOError, Errno::ECONNRESET, Errno::EPIPE => ex
+    logger.error "#{self.class.name} connection failure: #{ex.message} (#{ex.class.name})"
+    socket.close
   end
 
   protected

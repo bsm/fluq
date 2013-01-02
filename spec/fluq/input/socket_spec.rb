@@ -20,6 +20,17 @@ describe FluQ::Input::Socket do
     lambda { described_class.new(reactor, bind: 'udp://1234') }.should raise_error(URI::InvalidURIError)
   end
 
+  it 'should recover connection errors' do
+    FluQ::Event::Unpacker.should_receive(:new).and_raise(Errno::ECONNRESET)
+
+    client = TCPSocket.open("127.0.0.1", 26712)
+    client.write event.encode
+    client.close
+    sleep(0.01)
+
+    input.should be_alive
+  end
+
   it 'should handle requests' do
     client = TCPSocket.open("127.0.0.1", 26712)
     client.write event.encode

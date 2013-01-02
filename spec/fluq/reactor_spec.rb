@@ -3,6 +3,7 @@ require 'spec_helper'
 describe FluQ::Reactor do
 
   subject { reactor }
+  after   { reactor.inputs.terminate }
 
   its(:handlers)   { should == [] }
   its(:inputs)     { should be_a(Celluloid) }
@@ -15,9 +16,22 @@ describe FluQ::Reactor do
   end
 
   it "should listen to inputs" do
-    server = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
+    subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
     subject.should have(1).inputs
-    server.terminate
+  end
+
+  it "should supervise inputs" do
+    member = subject.listen(FluQ::Input::Socket, bind: "tcp://127.0.0.1:7654")
+    member.class.should == Celluloid::SupervisionGroup::Member
+
+    FluQ::Event::Unpacker.should_receive(:new).and_raise(RuntimeError)
+    subject.should_not_receive(:process)
+
+    client = TCPSocket.open("127.0.0.1", 7654)
+    lambda {
+      client.write events("tag").map(&:encode).join
+      sleep(0.01)
+    }.should change { member.actor.hash }
   end
 
   it "should register handlers" do
