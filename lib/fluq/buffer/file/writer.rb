@@ -76,7 +76,7 @@ class FluQ::Buffer::File::Writer
   # Writes events
   # @param [Array<FluQ::Event>] events
   def write(events)
-    binary  = events.map(&:encode).join
+    binary = events.map(&:encode).join
     rotate if current.value.pos + binary.bytesize > limit
     current.value.write(binary)
   end

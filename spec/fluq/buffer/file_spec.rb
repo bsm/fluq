@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Buffer::File do
 
-  let(:handler) { FluQ::Handler::Buffered.new reactor, name: "file_test", buffer: "file", flush_rate: 100 }
+  let(:handler) { FluQ::Handler::Buffered.new reactor, name: "file_test", buffer: "file" }
   let(:root)    { FluQ.root.join("../scenario/tmp/buffers/file_test") }
   let(:event)   { FluQ::Event.new("tag", 1313131313, { "a" => "1" }) }
   let(:writer)  { subject.send :writer }
@@ -70,4 +70,21 @@ describe FluQ::Buffer::File do
     events.first.should == event
   end
 
+  it "should rotate files safely" do
+    lambda {
+      [ Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { subject.concat [event] * 16 },
+        Thread.new { 8.times { writer.rotate } }
+      ].each(&:join)
+    }.should_not raise_error
+
+    FluQ::Testing.wait_until { total_events > 127 }
+    total_events.should == 128
+  end
 end
