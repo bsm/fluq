@@ -37,11 +37,9 @@ describe FluQ::Buffer::Base do
   end
 
   it 'should flush when interval reached' do
-    Time.stub now: (Time.now - 61)
-    subject
-    Time.unstub :now
     lambda {
       subject.concat [event]
+      subject.flusher.fire
       sleep(0.01)
     }.should change { handler.flushed.size }.by(1)
   end
