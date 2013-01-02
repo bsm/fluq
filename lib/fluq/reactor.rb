@@ -52,9 +52,9 @@ class FluQ::Reactor
     true
   end
 
-  # @return [String] instrospection
+  # @return [String] introspection
   def inspect
-    "#<#{self.class.name} inputs: #{inputs.alive? ? inputs.size : 0}, handlers: #{handlers.size}>"
+    "#<#{self.class.name} inputs: #{inputs.alive? ? inputs.count : 0}, handlers: #{handlers.size}>"
   end
 
 end

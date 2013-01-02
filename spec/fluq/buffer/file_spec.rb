@@ -63,7 +63,7 @@ describe FluQ::Buffer::File do
       subject.flush
       FluQ::Testing.wait_until { events.size > 17 }
     }.should change {
-      [subject, writer.glob(:open), writer.glob(:closed)].map(&:size)
+      [subject.event_count, writer.glob(:open).size, writer.glob(:closed).size]
     }.from([18, 1, 2]).to([0, 1, 0])
     events.should have(18).items
     events.first.should be_a(FluQ::Event)

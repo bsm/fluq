@@ -34,7 +34,6 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
 
     # @see FluQ::Buffer::Base#shift
     def shift
-      shifted = 0
       writer.glob :closed do |path|
         reserved = writer.reserve(path)
         next unless reserved
@@ -43,9 +42,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
         reserved.open("r") do |io|
           events = FluQ::Event::Unpacker.new(io).to_a
         end
-        shifted += events.size
         yield(events, path: reserved)
-        break if shifted > 100_000
       end
     end
 

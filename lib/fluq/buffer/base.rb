@@ -17,16 +17,16 @@ class FluQ::Buffer::Base
     @interval = handler.config[:flush_interval].to_i
     @rate     = handler.config[:flush_rate].to_i
     @rate     = 100_000 unless (1..100_000).include?(@rate)
-    @size     = Atomic.new(0)
+    @counter  = Atomic.new(0)
 
     every(interval) { flush } if interval > 0
   end
 
   # Flushes the buffer
   def flush
-    return if size.zero?
+    return if event_count.zero?
 
-    @size.update {|_| 0 }
+    @counter.update {|_| 0 }
     flusher.reset
     async.do_flush
   end
@@ -35,16 +35,16 @@ class FluQ::Buffer::Base
   # @param [Array<FluQ::Event>] events events to buffer
   def concat(events)
     on_events(events)
-    @size.update {|v| v + events.size }
-    unless size < rate
+    @counter.update {|v| v + events.size }
+    unless event_count < rate
       flush
     end
   end
 
   # @abstract
-  # @return [Integer] size
-  def size
-    @size.value
+  # @return [Integer] event count
+  def event_count
+    @counter.value
   end
 
   # Execute flush, called async
@@ -56,6 +56,7 @@ class FluQ::Buffer::Base
         commit(buffer, opts)
       rescue FluQ::Handler::Buffered::FlushError => e
         revert(buffer, opts)
+        break
       end
     end
   end
