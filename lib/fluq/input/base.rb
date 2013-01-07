@@ -15,6 +15,10 @@ class FluQ::Input::Base
     @config  = defaults.merge(options)
   end
 
+  # Start the input
+  def run
+  end
+
   protected
 
     def defaults

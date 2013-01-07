@@ -6,7 +6,14 @@ module FluQ::SpecHelpers
     super
     base.instance_eval do
       let(:reactor) { FluQ::Reactor.new }
-      after         { Celluloid.shutdown }
+      after { Celluloid.shutdown }
+    end
+  end
+
+  def with_reactor(&block)
+    FluQ::Reactor.run do |reactor|
+      block.call(reactor)
+      EM.stop
     end
   end
 

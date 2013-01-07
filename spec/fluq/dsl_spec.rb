@@ -2,8 +2,12 @@ require 'spec_helper'
 
 describe FluQ::DSL do
 
-  let :subject do
+  def dsl(reactor)
     described_class.new reactor, FluQ.root.join('../scenario/config/test.rb')
+  end
+
+  subject do
+    dsl(reactor)
   end
 
   it 'should find & configure input' do
@@ -31,9 +35,11 @@ describe FluQ::DSL do
   end
 
   it 'should evaluate configuration' do
-    subject.run
-    reactor.should have(1).handlers
-    reactor.should have(1).inputs
+    with_reactor do |reactor|
+      dsl(reactor).run
+      reactor.should have(1).handlers
+      reactor.should have(1).inputs
+    end
   end
 
 end

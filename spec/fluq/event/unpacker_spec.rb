@@ -14,6 +14,7 @@ describe FluQ::Event::Unpacker do
   end
 
   subject { described_class.new(buffer.open("r")) }
+  let(:blank) { described_class.new }
 
   it { should be_a(Enumerable) }
   its(:to_a) { should have(3).items }
@@ -42,6 +43,22 @@ describe FluQ::Event::Unpacker do
     events.should have(4).items
     events.last.should be_instance_of(FluQ::Event)
     events.last.should == ["wrong", 0, {}]
+  end
+
+  it 'should unpack raw data' do
+    events = []
+    blank.feed_each(buffer.read) {|i| events << i }
+    events.should have(3).items
+    events.first.should be_instance_of(FluQ::Event)
+  end
+
+  it 'should unpack raw data in slices' do
+    slices = []
+    blank.feed_slice(buffer.read, 2) do |events|
+      slices << events
+    end
+    slices.map(&:size).should == [2, 1]
+    slices.last.should == [FluQ::Event.new("final.tag", 1313131313)]
   end
 
 end

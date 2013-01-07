@@ -14,26 +14,26 @@ OUTPUT  = "log/benchmark/file.log"
 
 # Fork worker reactor
 worker = fork do
-  reactor = FluQ::Reactor.new
-  reactor.listen FluQ::Input::Socket,
-    bind: "tcp://127.0.0.1:30303"
-  reactor.register FluQ::Handler::Forward,
-    to: "tcp://127.0.0.1:30304",
-    buffer: "file",
-    buffer_options: { path: "tmp/benchmark" },
-    flush_interval: 2,
-    flush_rate: 10_000
-  sleep
+  FluQ::Reactor.run do |reactor|
+    reactor.listen FluQ::Input::Socket,
+      bind: "tcp://127.0.0.1:30303"
+    reactor.register FluQ::Handler::Forward,
+      to: "tcp://127.0.0.1:30304",
+      buffer: "file",
+      buffer_options: { path: "tmp/benchmark" },
+      flush_interval: 2,
+      flush_rate: 10_000
+  end
 end
 
 # Fork collector reactor
 collector = fork do
-  reactor = FluQ::Reactor.new
-  reactor.listen FluQ::Input::Socket,
-    bind: "tcp://127.0.0.1:30304"
-  reactor.register FluQ::Handler::Log,
-    path: OUTPUT
-  sleep
+  FluQ::Reactor.run do |reactor|
+    reactor.listen FluQ::Input::Socket,
+      bind: "tcp://127.0.0.1:30304"
+    reactor.register FluQ::Handler::Log,
+      path: OUTPUT
+  end
 end
 
 # Wait for reactors to start

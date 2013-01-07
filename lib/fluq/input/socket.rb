@@ -1,13 +1,7 @@
-require 'celluloid/io'
-
 class FluQ::Input::Socket < FluQ::Input::Base
-  include Celluloid::IO
 
   # @attr_reader [URI] url the URL
   attr_reader :url
-
-  # @attr_reader [Celluloid::IO::TCPServer|Celluloid::IO::UNIXServer] server the server
-  attr_reader :server
 
   # Constructor.
   # @option options [String] :bind the URL to bind to
@@ -21,38 +15,20 @@ class FluQ::Input::Socket < FluQ::Input::Base
     super
 
     raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
-    @url    = FluQ::URL.parse(config[:bind], protocols)
-    @server = case @url.scheme
-    when 'tcp'
-      TCPServer.new(@url.host, @url.port).tap do |s|
-        s.to_io.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
-        s.to_io.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      end
-    when 'unix'
-      UNIXServer.new(@url.path)
-    end
-    async.run
+    @url = FluQ::URL.parse(config[:bind], protocols)
   end
 
-  # Destructor. Close connections.
-  def finalize
-    server.close if server
-    FileUtils.rm_f(url.path) if url.scheme == "unix"
-  end
-
-  # Start the server.
+  # Start the server
   def run
-    loop { async.handle_connection server.accept }
-  end
-
-  # Handle an incoming connection
-  def handle_connection(socket)
-    FluQ::Event::Unpacker.new(socket).each_slice(100) do |slice|
-      reactor.process(slice)
+    case @url.scheme
+    when 'tcp'
+      EventMachine.start_server @url.host, @url.port, self.class::Connection, @reactor
+      # server.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+      # server.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+      # server
+    when 'unix'
+      EventMachine.start_server @url.path, Connection, @reactor
     end
-  rescue IOError, Errno::ECONNRESET, Errno::EPIPE => ex
-    logger.error "#{self.class.name} connection failure: #{ex.message} (#{ex.class.name})"
-    socket.close
   end
 
   protected
@@ -62,4 +38,8 @@ class FluQ::Input::Socket < FluQ::Input::Base
       ["tcp", "unix"]
     end
 
+end
+
+%w'connection'.each do |name|
+  require "fluq/input/socket/#{name}"
 end

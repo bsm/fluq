@@ -27,9 +27,9 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
     def connect(url)
       socket = case url.scheme
       when 'tcp'
-        Celluloid::IO::TCPSocket.new(url.host, url.port)
+        TCPSocket.new(url.host, url.port)
       when 'unix'
-        Celluloid::IO::UNIXSocket.new(url.path)
+        UNIXSocket.new(url.path)
       end
       yield socket
     ensure

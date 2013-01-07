@@ -4,16 +4,22 @@ class FluQ::Reactor
   # attr_reader [Array] handlers
   attr_reader :handlers
 
-  # attr_reader [FluQ::Supervisor] inputs
+  # attr_reader [Array] inputs
   attr_reader :inputs
 
   # attr_reader [FluQ::Scheduler] scheduler
   attr_reader :scheduler
 
+  # Runs the reactor within EventMachine
+  def self.run
+    EM.run { yield new }
+  end
+
+  # Constructor
   def initialize
     super
     @handlers  = []
-    @inputs    = FluQ::Supervisor.new
+    @inputs    = []
     @scheduler = FluQ::Scheduler.new
   end
 
@@ -22,7 +28,9 @@ class FluQ::Reactor
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
     logger.info "Listening to #{klass.name}"
-    inputs.supervise(klass, self, *args)
+    input = klass.new(self, *args).tap(&:run)
+    inputs.push(input)
+    input
   end
 
   # Registers a handler
@@ -54,7 +62,7 @@ class FluQ::Reactor
 
   # @return [String] introspection
   def inspect
-    "#<#{self.class.name} inputs: #{inputs.alive? ? inputs.count : 0}, handlers: #{handlers.size}>"
+    "#<#{self.class.name} inputs: #{inputs.size}, handlers: #{handlers.size}>"
   end
 
 end

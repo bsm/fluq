@@ -128,9 +128,10 @@ module FluQ
         @worker = fork do
           log "Starting FluQ #{FluQ::VERSION}"
           SIGNALS.each {|s| trap(s, "DEFAULT") }
-          FluQ::DSL.new(FluQ::Reactor.new, config).run
-          procline "(worker)"
-          sleep
+          FluQ::Reactor.run do |reactor|
+            FluQ::DSL.new(reactor, config).run
+            procline "(worker)"
+          end
         end
         procline "(master, managing #{worker})"
       end
