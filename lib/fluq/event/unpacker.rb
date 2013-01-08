@@ -35,13 +35,4 @@ class FluQ::Event::Unpacker < MessagePack::Unpacker
     block.call(slice)
   end
 
-  private
-
-    def process_slice(slice, &block)
-      block.call(slice)
-      nil
-    ensure
-      slice.clear
-    end
-
 end
