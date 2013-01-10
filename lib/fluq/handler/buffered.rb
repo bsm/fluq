@@ -1,12 +1,18 @@
 class FluQ::Handler::Buffered < FluQ::Handler::Base
   FlushError = Class.new(FluQ::Error)
 
-  attr_reader :buffer
+  # @attr_reader [Celluloid::SupervisionGroup]
+  attr_reader :supervisor
 
   # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @buffer = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).new(self, config[:buffer_options] || {})
+    @supervisor = FluQ::Buffer.const_get(config[:buffer].to_s.capitalize).supervise(self, config[:buffer_options] || {})
+  end
+
+  # @return [FluQ::Buffer] current buffer
+  def buffer
+    @supervisor.actors[0]
   end
 
   # @see FluQ::Handler::Base#on_events
