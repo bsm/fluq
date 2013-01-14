@@ -4,13 +4,21 @@ $:.unshift(File.expand_path('../../lib', __FILE__))
 
 require 'bundler/setup'
 require 'benchmark'
+require 'tempfile'
 require 'fluq'
 
 FileUtils.rm_rf FluQ.root.join("tmp/benchmark")
 FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
-EVENTS  = 1_000_000
-OUTPUT  = "log/benchmark/file.log"
+EVENTS = 1_000_000
+OUTPUT = "log/benchmark/file.log"
+EVENT  = FluQ::Event.new "some.tag", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
+PACKED = EVENT.encode
+SOURCE = Tempfile.new("fluq.bm").path
+
+File.open(SOURCE, "wb") do |f|
+  EVENTS.times { f << PACKED }
+end
 
 # Fork worker reactor
 worker = fork do
@@ -42,26 +50,9 @@ sleep(1)
 output  = FluQ.root.join(OUTPUT)
 counter = lambda { output.file? ? `cat #{output} | wc -l`.to_i : 0 }
 
-# Fork client process
-client  = fork do
-  queue  = Queue.new
-  event  = FluQ::Event.new "some.tag", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
-  packed = event.encode
-  EVENTS.times { queue.push(packed) }
-
-  (0...5).map do
-    Thread.new do
-      socket = TCPSocket.new "127.0.0.1", "30303"
-      while chunk = (queue.pop(true) rescue nil)
-        socket.write(chunk)
-      end
-      socket.close
-    end
-  end.each(&:join)
-end
-
 dispatched  = Benchmark.realtime do
-  Process.wait(client)
+  `cat #{SOURCE} | nc 127.0.0.1 30303`
+  # Process.wait(client)
 end
 
 received = Benchmark.realtime do
