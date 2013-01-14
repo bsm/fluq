@@ -12,7 +12,10 @@ class FluQ::Reactor
 
   # Runs the reactor within EventMachine
   def self.run
-    EM.run { yield new }
+    EM.run do
+      EM.threadpool_size = 100
+      yield new
+    end
   end
 
   # Constructor
