@@ -23,9 +23,8 @@ class FluQ::Input::Socket < FluQ::Input::Base
     case @url.scheme
     when 'tcp'
       EventMachine.start_server @url.host, @url.port, self.class::Connection, @reactor
-      # server.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
-      # server.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      # server
+    when 'udp'
+      EventMachine.open_datagram_socket @url.host, @url.port, self.class::Connection, @reactor
     when 'unix'
       EventMachine.start_server @url.path, Connection, @reactor
     end
@@ -35,7 +34,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
     # @return [Array] supported protocols
     def protocols
-      ["tcp", "unix"]
+      ["tcp", "udp", "unix"]
     end
 
 end

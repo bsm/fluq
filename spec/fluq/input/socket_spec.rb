@@ -2,13 +2,6 @@ require 'spec_helper'
 
 describe FluQ::Input::Socket do
 
-  # around do |example|
-  #   with_reactor do |reactor|
-  #     @reactor = reactor
-  #     example.run
-  #   end
-  # end
-
   let(:event)   { FluQ::Event.new("some.tag", 1313131313, {}) }
 
   def input(reactor)
@@ -16,15 +9,10 @@ describe FluQ::Input::Socket do
   end
 
   subject { input(reactor) }
-
   it { should be_a(FluQ::Input::Base) }
 
   it 'should require bind option' do
     lambda { described_class.new(reactor) }.should raise_error(ArgumentError, /No URL to bind/)
-  end
-
-  it 'should bind only to tcp or unix' do
-    lambda { described_class.new(reactor, bind: 'udp://1234') }.should raise_error(URI::InvalidURIError)
   end
 
   it 'should handle requests' do
@@ -38,6 +26,18 @@ describe FluQ::Input::Socket do
       client.write event.encode
       client.close
     end
+  end
+
+  it 'should support UDP' do
+    h = nil
+    with_reactor do |reactor|
+      h = reactor.register FluQ::Handler::Test
+      reactor.listen described_class, bind: "udp://127.0.0.1:26713"
+      client = UDPSocket.new
+      client.send event.encode, 0, "127.0.0.1", 26713
+      client.close
+    end
+    h.should have(1).events
   end
 
 end
