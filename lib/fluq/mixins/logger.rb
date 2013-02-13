@@ -5,7 +5,7 @@ module FluQ::Mixins::Logger
   end
 
   def exception_handler(&block)
-    @exception_handlers << block
+    exception_handlers << block
   end
 
   def crash(string, exception)
