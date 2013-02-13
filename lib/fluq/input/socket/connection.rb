@@ -15,7 +15,7 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
       @reactor.process(events)
     end
   rescue => ex
-    Celluloid::Logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
+    logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
   end
 
 end

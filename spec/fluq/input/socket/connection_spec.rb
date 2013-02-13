@@ -16,7 +16,7 @@ describe FluQ::Input::Socket::Connection do
 
   it 'should recover connection errors' do
     reactor.should_receive(:process).and_raise(Errno::ECONNRESET)
-    Celluloid::Logger.should_receive(:crash)
+    FluQ.logger.should_receive(:crash)
     subject.receive_data [event, event].map(&:encode).join
   end
 

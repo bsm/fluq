@@ -50,24 +50,26 @@ describe FluQ::Buffer::File do
   end
 
   it "should flush safely" do
-    subject.concat [event] * 5
-    writer.rotate
-    subject.concat [event] * 6
-    writer.rotate
-    subject.concat [event] * 7
+    with_reactor do
+      subject.concat [event] * 5
+      writer.rotate
+      subject.concat [event] * 6
+      writer.rotate
+      subject.concat [event] * 7
 
-    events = []
-    handler.should_receive(:on_flush).exactly(3).times.with {|e| events += e }
+      events = []
+      handler.should_receive(:on_flush).exactly(3).times.with {|e| events += e }
 
-    lambda {
-      subject.flush
-      FluQ::Testing.wait_until { events.size > 17 }
-    }.should change {
-      [subject.event_count, writer.glob(:open).size, writer.glob(:closed).size]
-    }.from([18, 1, 2]).to([0, 1, 0])
-    events.should have(18).items
-    events.first.should be_a(FluQ::Event)
-    events.first.should == event
+      lambda {
+        subject.flush
+        FluQ::Testing.wait_until { events.size > 17 }
+      }.should change {
+        [subject.event_count, writer.glob(:open).size, writer.glob(:closed).size]
+      }.from([18, 1, 2]).to([0, 1, 0])
+      events.should have(18).items
+      events.first.should be_a(FluQ::Event)
+      events.first.should == event
+    end
   end
 
   it "should rotate files safely" do

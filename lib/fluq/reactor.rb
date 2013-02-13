@@ -57,7 +57,7 @@ class FluQ::Reactor
         matching = handler.select(events)
         handler.on_events(matching) unless matching.empty?
       rescue => ex
-        Celluloid::Logger.crash "#{handler.class.name} #{handler.name} failed!", ex
+        logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
       end
     end
     true

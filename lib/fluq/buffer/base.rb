@@ -1,6 +1,5 @@
 class FluQ::Buffer::Base
   extend Forwardable
-  include Celluloid
   include FluQ::Mixins::Loggable
 
   attr_reader :handler, :flusher, :rate, :interval
@@ -19,7 +18,7 @@ class FluQ::Buffer::Base
     @rate     = 100_000 unless (1..100_000).include?(@rate)
     @counter  = Atomic.new(0)
 
-    me = current_actor
+    me = self
     @flusher  = @handler.reactor.scheduler.every(interval) { me.flush } if interval > 0
   end
 
@@ -29,7 +28,7 @@ class FluQ::Buffer::Base
 
     @counter.update {|_| 0 }
     flusher.reset if flusher
-    async.do_flush
+    EM.defer { do_flush }
   end
 
   # @abstract

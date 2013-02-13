@@ -3,13 +3,18 @@ require 'uri'
 require 'fileutils'
 require 'securerandom'
 require 'forwardable'
-require 'celluloid'
 require 'eventmachine'
 require 'atomic'
+require 'timers'
 require 'msgpack'
 require 'multi_json'
+require 'logger'
 
 module FluQ
+  %w'version error mixins'.each do |name|
+    require "fluq/#{name}"
+  end
+
   class << self
 
     # @attr_reader [String] env runtime environemnt
@@ -19,7 +24,8 @@ module FluQ
 
     # @param [Logger] instance the thread-safe logger instance
     def logger=(instance)
-      @logger = Celluloid.logger = instance
+      instance.extend(FluQ::Mixins::Logger)
+      @logger = instance
     end
 
     def init!
@@ -40,6 +46,6 @@ module FluQ
   init!
 end
 
-%w'version error mixins supervisor url scheduler event reactor handler buffer input dsl'.each do |name|
+%w'url scheduler event reactor handler buffer input dsl'.each do |name|
   require "fluq/#{name}"
 end

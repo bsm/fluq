@@ -14,7 +14,10 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
   # @see FluQ::Handler::Buffered#on_flush
   def on_flush(events)
     super
-    do_forward events.map(&:encode).join
+    #pid = fork do
+      do_forward events.map(&:encode).join
+    #end
+    #Process.wait(pid)
   end
 
   protected

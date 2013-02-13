@@ -2,9 +2,13 @@ require 'spec_helper'
 
 describe FluQ::Buffer::Base do
 
-  let(:handler) { FluQ::Handler::TestBuffered.new reactor, flush_rate: 2, buffer: 'memory' }
   let(:event)   { FluQ::Event.new("t", Time.now.to_i, {}) }
+  let(:handler) { FluQ::Handler::TestBuffered.new reactor, flush_rate: 2, buffer: 'memory' }
   subject       { handler.buffer }
+
+  around do |example|
+    with_reactor { example.run }
+  end
 
   it_behaves_like "a buffer"
   it               { should be_a(described_class) }

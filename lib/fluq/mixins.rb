@@ -1,6 +1,6 @@
 module FluQ::Mixins
 end
 
-%w'loggable'.each do |name|
+%w'loggable logger'.each do |name|
   require "fluq/mixins/#{name}"
 end
