@@ -11,4 +11,11 @@ describe FluQ::Scheduler do
     lambda { sleep(0.02) }.should change { ran }.to(true)
   end
 
+  it 'should log exceptions' do
+    logged = []
+    subject.logger.exception_handler {|e| logged << e }
+    subject.after(0.01) { raise 'boom' }
+    lambda { sleep(0.02) }.should change { logged.map(&:inspect) }.to(["#<RuntimeError: boom>"])
+  end
+
 end

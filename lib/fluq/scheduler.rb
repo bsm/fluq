@@ -15,7 +15,7 @@ class FluQ::Scheduler < ::Timers
       sleep(1) while empty?
       wait
     rescue => e
-      logger.warn "#{self.class.name} task failed: #{e.message}"
+      logger.crash "#{self.class.name} task failed", e
     end
 
 end
