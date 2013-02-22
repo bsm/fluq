@@ -1,7 +1,4 @@
-require 'monitor'
-
 class MockTCPServer
-  extend MonitorMixin
 
   def self.listen(*ports)
     servers = ports.inject({}) {|res, port| res.update port => new(port) }

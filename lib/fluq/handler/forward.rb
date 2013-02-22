@@ -21,19 +21,21 @@ class FluQ::Handler::Forward < FluQ::Handler::Buffered
 
     # @return [Array] supported protocols
     def protocols
-      ["tcp", "uniq"]
+      ["tcp", "unix"]
     end
 
     def connect(url)
-      socket = case url.scheme
+      sock = case url.scheme
       when 'tcp'
-        TCPSocket.new(url.host, url.port)
+        TCPSocket.new(url.host, url.port).tap do |s|
+          s.setsockopt Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1
+        end
       when 'unix'
         UNIXSocket.new(url.path)
       end
-      yield socket
+      yield sock
     ensure
-      socket.close if socket
+      sock.close if sock
     end
 
   private
