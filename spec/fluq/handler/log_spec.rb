@@ -17,7 +17,7 @@ describe FluQ::Handler::Log do
   end
 
   it { should be_a(FluQ::Handler::Base) }
-  its(:config) { subject.keys.should =~ [:convert, :path, :pattern, :rewrite] }
+  its("config.keys") { should =~ [:convert, :path, :pattern, :rewrite] }
 
   it 'should log events' do
     subject.on_events [event]
