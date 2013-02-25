@@ -20,17 +20,17 @@ describe FluQ::Reactor do
   end
 
   it "should register handlers" do
-    h1 = subject.register(FluQ::Handler::Buffered)
+    h1 = subject.register(FluQ::Handler::Test)
     subject.should have(1).handlers
 
-    h2 = subject.register(FluQ::Handler::Buffered, name: "specific")
+    h2 = subject.register(FluQ::Handler::Test, name: "specific")
     subject.should have(2).handlers
   end
 
   it "should prevent duplicates" do
-    subject.register(FluQ::Handler::Buffered)
+    subject.register(FluQ::Handler::Test)
     lambda {
-      subject.register(FluQ::Handler::Buffered)
+      subject.register(FluQ::Handler::Test)
     }.should raise_error(ArgumentError)
   end
 

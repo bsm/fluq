@@ -19,9 +19,7 @@ describe FluQ::DSL do
   end
 
   it 'should find & configure handler' do
-    subject.handler(:forward) do
-      to 'tcp://localhost:87654'
-    end
+    subject.handler(:log)
     subject.should have(1).handlers
     reactor.should have(:no).handlers
   end

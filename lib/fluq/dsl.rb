@@ -16,7 +16,7 @@ class FluQ::DSL
     inputs.push [klass, FluQ::DSL::Options.new(&block).to_hash]
   end
 
-  # @param [Array<Symbol>] handler type path, e.g. :forward, :counter
+  # @param [Array<Symbol>] handler type path, e.g. :log, :counter
   def handler(*type, &block)
     klass = constantize(:handler, *type)
     handlers.push [klass, FluQ::DSL::Options.new(&block).to_hash]

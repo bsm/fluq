@@ -1,4 +1,4 @@
 module FluQ::Handler::Custom
-  class TestHandler < FluQ::Handler::Buffered
+  class TestHandler < FluQ::Handler::Base
   end
 end

@@ -24,23 +24,3 @@ class FluQ::Handler::Test < FluQ::Handler::Base
     @events.concat events
   end
 end
-
-class FluQ::Handler::TestBuffered < FluQ::Handler::Buffered
-  attr_reader :events, :flushed
-
-  def initialize(*)
-    super
-    @events  = []
-    @flushed = []
-  end
-
-  def on_events(events)
-    raise RuntimeError, "Test Failure!" if events.any? {|e| e.tag == "error.event" }
-    @events.concat events
-  end
-
-  def on_flush(events)
-    raise FluQ::Handler::Buffered::FlushError, "Test Failure!" if events.any? {|e| e.tag == "error.flush" }
-    @flushed << events
-  end
-end
