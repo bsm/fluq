@@ -9,7 +9,8 @@ module FluQ::Mixins::Logger
   end
 
   def crash(string, exception)
-    error(string)
+    trace = exception.backtrace.map {|line| "  #{line}" }.join("\n")
+    error [string, trace].join("\n")
 
     exception_handlers.each do |handler|
       begin
