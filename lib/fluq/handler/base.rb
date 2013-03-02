@@ -38,7 +38,7 @@ class FluQ::Handler::Base
 
   # @return [Boolean] true if event matches
   def match?(event)
-    !!pattern.match(event.tag)
+    !!(pattern =~ event.tag)
   end
 
   # @param [Array<FluQ::Event>] events
