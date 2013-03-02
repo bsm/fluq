@@ -3,21 +3,14 @@ require "fileutils"
 require "socket"
 
 module FluQ
-
-  # Partially inspired by https://github.com/nevans/resque-pool
   class CLI
     SIGNALS = [ :QUIT, :INT, :TERM, :HUP ]
-    CHUNK_SIZE = (16 * 1024) # 16k
 
     # attr_reader [Hash] options
     attr_reader :options
-    attr_reader :pending_signals, :read_io, :write_io, :worker
 
     # Runs the CLI
     def self.run
-      if GC.respond_to?(:copy_on_write_friendly=)
-        GC.copy_on_write_friendly = true
-      end
       if BasicSocket.respond_to?(:do_not_reverse_lookup=)
         BasicSocket.do_not_reverse_lookup = true
       end
@@ -31,10 +24,6 @@ module FluQ
       # Parse options
       @options = {}
       parser.parse!(ARGV)
-
-      # Setup pipe & signals
-      @read_io, @write_io = IO.pipe
-      @pending_signals = []
     end
 
     def run
@@ -68,23 +57,17 @@ module FluQ
       FileUtils.mkdir_p(File.dirname(@pidfile))
       File.open(@pidfile, "w") {|f| f.write Process.pid }
 
-      # Setup IO pipe
-      [read_io, write_io].each {|io| io.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC) }
-
       # Trap signals
-      SIGNALS.each {|signal| trap(signal) {|_| on_signal(signal) } }
-      trap(:CHLD)   {|_| master_poke! }
-
-      # Spawn worker
-      worker_spawn!
-
-      # Start the main loop
-      loop do
-        break if handle_signals! == :break
-        master_sleep! if pending_signals.empty?
+      SIGNALS.each do |signal|
+        trap(signal) {|*| shutdown! }
       end
 
-      shutdown!
+      # Start
+      log "Starting FluQ #{FluQ::VERSION}"
+      FluQ::Reactor.run do |reactor|
+        FluQ::DSL.new(reactor, options[:config]).run
+        procline
+      end
     end
 
     # @return [Boolean] true if configured
@@ -93,72 +76,6 @@ module FluQ
     end
 
     private
-
-      # Callback, when signal received
-      def on_signal(signal)
-        if pending_signals.size < 5
-          FluQ.logger.debug "Received #{signal}, pending: #{pending_signals.inspect}"
-          pending_signals << signal
-          master_poke!
-        else
-          FluQ.logger.debug "Ignoring #{signal}, pending: #{pending_signals.inspect}"
-        end
-      end
-
-      # Handle all pending signals
-      def handle_signals!
-        case signal = pending_signals.shift
-        when :HUP
-          log "Reloading configuration"
-          pid = worker_signal!(:QUIT)
-          worker_spawn!
-          Process.wait(pid)
-        when :QUIT, :TERM
-          Process.wait worker_signal!(:QUIT)
-          :break
-        when :INT
-          worker_signal!(:QUIT)
-          :break
-        end
-      end
-
-      # Spawn a new worker
-      def worker_spawn!
-        config = options[:config].dup
-        @worker = fork do
-          log "Starting FluQ #{FluQ::VERSION}"
-          SIGNALS.each {|s| trap(s, "DEFAULT") }
-          FluQ::Reactor.run do |reactor|
-            FluQ::DSL.new(reactor, config).run
-            procline "(worker)"
-          end
-        end
-        procline "(master, managing #{worker})"
-      end
-
-      # Send signal to worker
-      def worker_signal!(signal)
-        pid = worker
-        Process.kill signal, pid
-        pid
-      end
-
-      # Put master asleep
-      def master_sleep!
-        begin
-          ready = IO.select([read_io], nil, nil, 1) or return
-          ready[0] && ready[0][0] or return
-          loop { read_io.read_nonblock(CHUNK_SIZE) }
-        rescue Errno::EAGAIN, Errno::EINTR
-        end
-      end
-
-      # Poke master
-      def master_poke!
-        write_io.write_nonblock('.') # wakeup master process from select
-      rescue Errno::EAGAIN, Errno::EINTR
-        retry # pipe is full, master should wake up anyways
-      end
 
       # Shut down
       def shutdown!
@@ -171,8 +88,8 @@ module FluQ
         FluQ.logger.info(message)
       end
 
-      def procline(message)
-        $0 = "fluq-rb #{FluQ::VERSION} #{message}"
+      def procline(message = nil)
+        $0 = ["fluq-rb", FluQ::VERSION, message].compact.join(" ")
       end
 
       def parser
