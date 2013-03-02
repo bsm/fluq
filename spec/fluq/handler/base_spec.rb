@@ -8,12 +8,15 @@ describe FluQ::Handler::Base do
   it { should be_a(FluQ::Mixins::Loggable) }
   its(:reactor) { should be(reactor) }
   its(:config)  { should == { pattern: "*" } }
+  its(:pattern) { should == /^.*$/ }
   its(:name)    { should == "base-M4na42" }
 
   def events(*tags)
-    tags.map do |tag|
-      FluQ::Event.new(tag, 1313131313, {})
-    end
+    tags.map {|tag| event(tag) }
+  end
+
+  def event(tag)
+    FluQ::Event.new(tag, 1313131313, {})
   end
 
   it 'should have a type' do
@@ -26,13 +29,13 @@ describe FluQ::Handler::Base do
 
   it 'should match tags correctly' do
     subject = described_class.new(reactor, pattern: "visits.????.*")
-    subject.match?("visits.site.1").should be(true)
-    subject.match?("visits.page.2").should be(true)
-    subject.match?("visits.other.1").should be(false)
-    subject.match?("visits.site").should be(false)
-    subject.match?("visits.site.").should be(true)
-    subject.match?("prefix.visits.site.1").should be(false)
-    subject.match?("visits.site.1.suffix").should be(true)
+    subject.match?(event("visits.site.1")).should be(true)
+    subject.match?(event("visits.page.2")).should be(true)
+    subject.match?(event("visits.other.1")).should be(false)
+    subject.match?(event("visits.site")).should be(false)
+    subject.match?(event("visits.site.")).should be(true)
+    subject.match?(event("prefix.visits.site.1")).should be(false)
+    subject.match?(event("visits.site.1.suffix")).should be(true)
   end
 
   it 'should select events' do

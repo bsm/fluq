@@ -63,9 +63,8 @@ class FluQ::Reactor
   def process(events)
     if buffer_size
       flush_when_idle!
-      @buffer.concat(events)
-      buflen = @buffer.size
-      on_events @buffer.shift(buflen + 1) if buflen >= buffer_size
+      count = @buffer.concat(events).size
+      on_events @buffer.shift(count) if count >= buffer_size
     else
       on_events events
     end
@@ -95,7 +94,9 @@ class FluQ::Reactor
     def flush_when_idle!
       @flusher.cancel if @flusher
       if buffer_size
-        @flusher = EM.add_periodic_timer(1) { process([]) }
+        @flusher = EM.add_periodic_timer(1) do
+          on_events @buffer.shift(@buffer.size) unless @buffer.empty?
+        end
       else
         @flusher = nil
       end

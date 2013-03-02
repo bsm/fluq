@@ -17,6 +17,9 @@ class FluQ::Handler::Base
   # @attr_reader [Hash] config
   attr_reader :config
 
+  # @attr_reader [Regexp] pattern
+  attr_reader :pattern
+
   # @param [Hash] options
   # @option options [String] :name a (unique) handler identifier
   # @option options [String] :pattern tag pattern to match
@@ -30,17 +33,18 @@ class FluQ::Handler::Base
     @reactor = reactor
     @config  = defaults.merge(options)
     @name    = config[:name] || generate_name
+    @pattern = generate_pattern
   end
 
-  # @return [Boolean] true if tag matches
-  def match?(tag)
-    File.fnmatch? config[:pattern], tag.to_s
+  # @return [Boolean] true if event matches
+  def match?(event)
+    !!pattern.match(event.tag)
   end
 
   # @param [Array<FluQ::Event>] events
   # @return [Array<FluQ::Event>] matching events
   def select(events)
-    events.select {|e| match?(e.tag) }
+    events.select &method(:match?)
   end
 
   # @abstract callback, called on each event
@@ -59,6 +63,11 @@ class FluQ::Handler::Base
     def generate_name
       suffix = [Digest::MD5.digest(config[:pattern])].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,6]
       [self.class.type, suffix].join("-")
+    end
+
+    def generate_pattern
+      string = Regexp.quote(config[:pattern]).gsub("\\*", ".*").gsub("\\?", ".")
+      Regexp.new "^#{string}$"
     end
 
 end
