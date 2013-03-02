@@ -10,7 +10,6 @@ describe FluQ::Input::Socket::Connection do
 
   it 'should handle data' do
     subject.receive_data [event, event].map(&:encode).join
-    FluQ::Testing.wait_until { handler.events.size > 1 }
     handler.should have(2).events
   end
 

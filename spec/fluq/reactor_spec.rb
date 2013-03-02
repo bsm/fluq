@@ -2,9 +2,12 @@ require 'spec_helper'
 
 describe FluQ::Reactor do
 
-  its(:handlers)   { should == [] }
-  its(:inputs)     { should == [] }
-  its(:scheduler)  { should be_instance_of(FluQ::Scheduler) }
+  let(:timer) { mock("Timer", cancel: true) }
+  before { EM.stub add_periodic_timer: timer }
+
+  its(:handlers)    { should == [] }
+  its(:inputs)      { should == [] }
+  its(:buffer_size) { should be_nil }
 
   def events(*tags)
     tags.map do |tag|
@@ -38,16 +41,37 @@ describe FluQ::Reactor do
     h1 = subject.register(FluQ::Handler::Test)
     h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
     subject.process(events("tag")).should be(true)
-
-    FluQ::Testing.wait_until { h1.events.size > 0 }
     h1.events.should == [["tag", 1313131313, {}]]
     h2.events.should == []
+  end
+
+  it "should process events (when buffered)" do
+    subject.buffer_size = 10
+    h1 = subject.register(FluQ::Handler::Test)
+    9.times { subject.process(events("tag")) }
+    lambda {
+      subject.process(events("tag"))
+    }.should change {
+      h1.events.size
+    }.from(0).to(10)
+  end
+
+  it 'should allow to enable/disable buffering (with idle flusher)' do
+    EM.unstub :add_periodic_timer
+    with_reactor do |reactor|
+      lambda { reactor.buffer_size = 10 }.should change {
+        reactor.instance_variable_get(:@flusher).class.name
+      }.from("NilClass").to("EventMachine::PeriodicTimer")
+
+      lambda { reactor.buffer_size = nil }.should change {
+        reactor.instance_variable_get(:@flusher).class.name
+      }.from("EventMachine::PeriodicTimer").to("NilClass")
+    end
   end
 
   it "should skip not matching events" do
     h1 = subject.register(FluQ::Handler::Test, pattern: "some*")
     subject.process(events("some.tag", "other.tag", "something.else")).should be(true)
-    FluQ::Testing.wait_until { h1.events.size > 1 }
     h1.events.should == [["some.tag", 1313131313, {}], ["something.else", 1313131313, {}]]
   end
 
@@ -56,9 +80,7 @@ describe FluQ::Reactor do
     10.times { subject.process(events("ok.now")) }
     subject.process(events("error.event"))
     10.times { subject.process(events("ok.now")) }
-    FluQ::Testing.wait_until { h1.events.size > 19 }
     h1.should have(20).events
   end
-
 
 end

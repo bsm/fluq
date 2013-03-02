@@ -7,8 +7,9 @@ class FluQ::Reactor
   # attr_reader [Array] inputs
   attr_reader :inputs
 
-  # attr_reader [FluQ::Scheduler] scheduler
-  attr_reader :scheduler
+  # attr_accessor [Integer] buffer size
+  #   The max. number of events to buffer events before flushing to handlers.
+  attr_reader :buffer_size
 
   # Runs the reactor within EventMachine
   def self.run
@@ -21,9 +22,17 @@ class FluQ::Reactor
   # Constructor
   def initialize
     super
-    @handlers  = []
-    @inputs    = []
-    @scheduler = FluQ::Scheduler.new
+    @handlers    = []
+    @inputs      = []
+    @buffer      = []
+  end
+
+  # @param [Integer] value the max. number of events
+  #   to buffer events before flushing to handlers. Set to nil to disable.
+  def buffer_size=(value)
+    @buffer_size = value
+    flush_when_idle!
+    @buffer_size
   end
 
   # Listens to an input
@@ -52,13 +61,13 @@ class FluQ::Reactor
 
   # @param [Array<Event>] events to process
   def process(events)
-    handlers.each do |handler|
-      begin
-        matching = handler.select(events)
-        handler.on_events(matching) unless matching.empty?
-      rescue => ex
-        logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
-      end
+    if buffer_size
+      flush_when_idle!
+      @buffer.concat(events)
+      buflen = @buffer.size
+      on_events @buffer.shift(buflen + 1) if buflen >= buffer_size
+    else
+      on_events events
     end
     true
   end
@@ -67,5 +76,29 @@ class FluQ::Reactor
   def inspect
     "#<#{self.class.name} inputs: #{inputs.size}, handlers: #{handlers.size}>"
   end
+
+  protected
+
+    def on_events(events)
+      handlers.each do |handler|
+        begin
+          matching = handler.select(events)
+          handler.on_events(matching) unless matching.empty?
+        rescue => ex
+          logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
+        end
+      end
+    end
+
+  private
+
+    def flush_when_idle!
+      @flusher.cancel if @flusher
+      if buffer_size
+        @flusher = EM.add_periodic_timer(1) { process([]) }
+      else
+        @flusher = nil
+      end
+    end
 
 end

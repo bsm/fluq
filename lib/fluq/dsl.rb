@@ -22,6 +22,11 @@ class FluQ::DSL
     handlers.push [klass, FluQ::DSL::Options.new(&block).to_hash]
   end
 
+  # Configure settings
+  def configure(&block)
+    block.call(reactor)
+  end
+
   # @param [String] relative relative path
   def import(relative)
     instance_eval(path.dirname.join(relative).read)
