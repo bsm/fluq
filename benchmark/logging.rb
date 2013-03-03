@@ -5,8 +5,8 @@ $:.unshift(File.expand_path('../../lib', __FILE__))
 require 'bundler/setup'
 require 'fluq'
 require 'benchmark'
-require 'json'
 
+MultiJson.use :yajl
 FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
 events = (1..100_000).map do
