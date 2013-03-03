@@ -24,9 +24,14 @@ processed = Benchmark.realtime do
     handler.on_events(slice)
     num += slice.size
     if (num % 10_000).zero?
-      puts "--> Processed #{num}"
+      puts "--> Processed : #{num}"
     end
   end
+  handler = nil
+  GC.start
 end
 
-puts "--> Processed #{events.size} in #{processed.round(1)}s"
+puts "--> Processed : #{events.size} in #{processed.round(1)}s"
+files   = Dir[FluQ.root.join("log/benchmark/**/*.log").to_s]
+lines   = `cat #{files.join(' ')} | wc -l`.strip
+puts "--> Written   : #{lines} lines"
