@@ -2,11 +2,10 @@ require 'spec_helper'
 
 describe FluQ::Handler::Base do
 
-  subject { described_class.new reactor }
+  subject { described_class.new }
 
   it { should respond_to(:on_events) }
   it { should be_a(FluQ::Mixins::Loggable) }
-  its(:reactor) { should be(reactor) }
   its(:config)  { should == { pattern: /./ } }
   its(:pattern) { should == /./ }
   its(:name)    { should == "base-AxPGxv" }
@@ -24,11 +23,11 @@ describe FluQ::Handler::Base do
   end
 
   it 'can have custom names' do
-    described_class.new(reactor, name: "visitors").name.should == "visitors"
+    described_class.new(name: "visitors").name.should == "visitors"
   end
 
   it 'should match tags via patters' do
-    subject = described_class.new(reactor, pattern: "visits.????.*")
+    subject = described_class.new(pattern: "visits.????.*")
     subject.match?(event("visits.site.1")).should be(true)
     subject.match?(event("visits.page.2")).should be(true)
     subject.match?(event("visits.other.1")).should be(false)
@@ -39,7 +38,7 @@ describe FluQ::Handler::Base do
   end
 
   it 'should support "or" patterns' do
-    subject = described_class.new(reactor, pattern: "visits.{site,page}.*")
+    subject = described_class.new(pattern: "visits.{site,page}.*")
     subject.match?(event("visits.site.1")).should be(true)
     subject.match?(event("visits.page.2")).should be(true)
     subject.match?(event("visits.other.1")).should be(false)
@@ -50,7 +49,7 @@ describe FluQ::Handler::Base do
   end
 
   it 'should support regular expression patterns' do
-    subject = described_class.new(reactor, pattern: /^visits\.(?:s|p)\w{3}\..*/)
+    subject = described_class.new(pattern: /^visits\.(?:s|p)\w{3}\..*/)
     subject.match?(event("visits.site.1")).should be(true)
     subject.match?(event("visits.page.2")).should be(true)
     subject.match?(event("visits.other.1")).should be(false)
@@ -62,7 +61,7 @@ describe FluQ::Handler::Base do
 
   it 'should select events' do
     stream = events("visits.site.1", "visits.page.2", "visits.other.1", "visits.site.2")
-    described_class.new(reactor, pattern: "visits.????.*").select(stream).map(&:tag).should == [
+    described_class.new(pattern: "visits.????.*").select(stream).map(&:tag).should == [
       "visits.site.1", "visits.page.2", "visits.site.2"
     ]
   end

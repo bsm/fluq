@@ -13,7 +13,7 @@ events = (1..100_000).map do
   FluQ::Event.new "a.b#{rand(4)}.c#{rand(100)}.d#{rand(100)}", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
 end
 
-handler = FluQ::Handler::Log.new nil,
+handler = FluQ::Handler::Log.new \
   path: "log/benchmark/%Y%m/%d/%H/%t.log",
   rewrite: lambda {|t| t.split(".")[1] }
 

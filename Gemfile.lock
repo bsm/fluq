@@ -12,6 +12,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     atomic (1.0.1)
+    atomic (1.0.1-java)
     diff-lcs (1.2.1)
     eventmachine-le (1.1.4)
     json (1.7.7)

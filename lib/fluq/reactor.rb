@@ -51,7 +51,7 @@ class FluQ::Reactor
   def register(klass, *args)
     logger.info "Registered #{klass.name}"
 
-    handler = klass.new(self, *args)
+    handler = klass.new(*args)
     if handlers.any? {|h| h.name == handler.name }
       raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option"
     end
