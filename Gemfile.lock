@@ -6,7 +6,7 @@ PATH
       eventmachine-le
       msgpack (~> 0.5.0)
       multi_json
-      timers (>= 1.0.2)
+      rufus-lru
 
 GEM
   remote: http://rubygems.org/
@@ -14,8 +14,9 @@ GEM
     atomic (1.0.1)
     diff-lcs (1.2.1)
     eventmachine-le (1.1.4)
+    json (1.7.7)
+    json (1.7.7-java)
     msgpack (0.5.3)
-    msgpack-jruby (1.3.2-java)
     multi_json (1.6.1)
     rake (10.0.3)
     rspec (2.13.0)
@@ -26,8 +27,8 @@ GEM
     rspec-expectations (2.13.0)
       diff-lcs (>= 1.1.3, < 2.0)
     rspec-mocks (2.13.0)
-    timers (1.1.0)
-    yard (0.8.5)
+    rufus-lru (1.0.5)
+    yard (0.8.5.2)
 
 PLATFORMS
   java
@@ -36,8 +37,7 @@ PLATFORMS
 DEPENDENCIES
   bundler
   fluq!
-  msgpack
-  msgpack-jruby
+  json
   rake
   rspec
   yard

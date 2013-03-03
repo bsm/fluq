@@ -27,10 +27,8 @@ class MockTCPServer
 
   def stop
     @server.close unless @server.nil? || @server.closed?
-    while @thread.alive?
-      @thread.kill
-      sleep(0.05)
-    end
+    @thread.kill
+    sleep(0.001) while @thread.alive?
   end
 
   private

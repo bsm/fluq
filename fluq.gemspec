@@ -30,10 +30,11 @@ Gem::Specification.new do |s|
   s.add_dependency "eventmachine-le"
   s.add_dependency "atomic"
   s.add_dependency "multi_json"
-  s.add_dependency "timers", ">= 1.0.2"
+  s.add_dependency "rufus-lru"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "bundler"
   s.add_development_dependency "rspec"
   s.add_development_dependency "yard"
+  s.add_development_dependency "json"
 end
