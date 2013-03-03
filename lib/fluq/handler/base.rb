@@ -56,17 +56,24 @@ class FluQ::Handler::Base
 
     # Configuration defaults
     def defaults
-      { pattern: "*" }
+      { pattern: /./ }
     end
 
     # @return [String] generated name
     def generate_name
-      suffix = [Digest::MD5.digest(config[:pattern])].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,6]
+      suffix = [Digest::MD5.digest(config[:pattern].to_s)].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,6]
       [self.class.type, suffix].join("-")
     end
 
     def generate_pattern
-      string = Regexp.quote(config[:pattern]).gsub("\\*", ".*").gsub("\\?", ".")
+      return config[:pattern] if Regexp === config[:pattern]
+
+      string = Regexp.quote(config[:pattern])
+      string.gsub!("\\*", ".*")
+      string.gsub!("\\?", ".")
+      string.gsub!(/\\\{(.+?)\\\}/) do |match|
+        "(?:#{$1.split(",").join("|")})"
+      end
       Regexp.new "^#{string}$"
     end
 
