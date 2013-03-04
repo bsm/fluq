@@ -39,9 +39,9 @@ class FluQ::Reactor
   # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
-    logger.info "Listening to #{klass.name}"
     input = klass.new(self, *args).tap(&:run)
     inputs.push(input)
+    logger.info "Listening to #{input.name}"
     input
   end
 
@@ -49,13 +49,12 @@ class FluQ::Reactor
   # @param [Class<FluQ::Handler::Base>] klass handler class
   # @param [multiple] args initialization arguments
   def register(klass, *args)
-    logger.info "Registered #{klass.name}"
-
     handler = klass.new(*args)
     if handlers.any? {|h| h.name == handler.name }
       raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option"
     end
     handlers.push(handler)
+    logger.info "Registered #{handler.name}"
     handler
   end
 
@@ -81,8 +80,10 @@ class FluQ::Reactor
     def on_events(events)
       handlers.each do |handler|
         begin
+          start = Time.now
           matching = handler.select(events)
           handler.on_events(matching) unless matching.empty?
+          logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{(Time.now - start).round(1)}s" }
         rescue => ex
           logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
         end

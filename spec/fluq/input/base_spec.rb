@@ -9,5 +9,6 @@ describe FluQ::Input::Base do
   it { should be_a(FluQ::Mixins::Loggable) }
   its(:reactor) { should be(reactor) }
   its(:config)  { should == {} }
+  its(:name)    { should == "base" }
 
 end

@@ -28,9 +28,8 @@ Gem::Specification.new do |s|
     s.add_dependency "msgpack", "~> 0.5.0"
   end
   s.add_dependency "eventmachine-le"
-  s.add_dependency "atomic"
   s.add_dependency "multi_json"
-  s.add_dependency "rufus-lru"
+  s.add_dependency "timed_lru"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "bundler"

@@ -10,6 +10,7 @@ describe FluQ::Input::Socket do
 
   subject { input(reactor) }
   it { should be_a(FluQ::Input::Base) }
+  its(:name) { should == "socket (tcp://127.0.0.1:26712)" }
 
   it 'should require bind option' do
     lambda { described_class.new(reactor) }.should raise_error(ArgumentError, /No URL to bind/)

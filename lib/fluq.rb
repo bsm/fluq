@@ -3,11 +3,11 @@ require 'uri'
 require 'fileutils'
 require 'securerandom'
 require 'forwardable'
+require 'logger'
 require 'eventmachine'
-require 'atomic'
 require 'msgpack'
 require 'multi_json'
-require 'logger'
+require 'timed_lru'
 
 module FluQ
   %w'version error mixins'.each do |name|

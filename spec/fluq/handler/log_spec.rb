@@ -10,18 +10,18 @@ describe FluQ::Handler::Log do
   before     { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
   it { should be_a(FluQ::Handler::Base) }
-  its("config.keys") { should =~ [:convert, :path, :pattern, :rewrite, :file_max] }
+  its("config.keys") { should =~ [:convert, :path, :pattern, :rewrite, :cache_max, :cache_ttl] }
 
   it "can log events" do
     subject.on_events [event]
-    subject.pool.each_value(&:flush)
+    subject.pool.each_key {|k| subject.pool[k].flush }
     root.join("my/special/tag/20110812/06.log").read.should == %(my.special.tag\t1313131313\t{"a":"1"}\n)
   end
 
   it 'can have custom conversions' do
     subject = described_class.new convert: lambda {|e| e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
     subject.on_events [event]
-    subject.pool.each_value(&:flush)
+    subject.pool.each_key {|k| subject.pool[k].flush }
     root.join("my/special/tag/20110812/06.log").read.should == "a=1,ts=1313131313\n"
   end
 
@@ -31,12 +31,19 @@ describe FluQ::Handler::Log do
     root.join("tag.special/20110812/06.log").should be_file
   end
 
+  it 'should not fail on temporary file errors' do
+    subject.on_events [event]
+    subject.pool.each_key {|k| subject.pool[k].close }
+    subject.on_events [event]
+    subject.pool.each_key {|k| subject.pool[k].flush }
+    root.join("my/special/tag/20110812/06.log").read.should have(2).lines
+  end
+
   describe described_class::FilePool do
-    subject    { described_class::FilePool.new(2) }
+    subject    { described_class::FilePool.new(max_size: 2) }
     let(:path) { root.join("a.log") }
 
-    it { should be_a(Rufus::Lru::SynchronizedHash) }
-    it { should be_a(::Hash) }
+    it { should be_a(TimedLRU) }
 
     it 'should open files' do
       lambda {

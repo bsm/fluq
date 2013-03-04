@@ -18,6 +18,11 @@ class FluQ::Input::Socket < FluQ::Input::Base
     @url = FluQ::URL.parse(config[:bind], protocols)
   end
 
+  # @return [String] descriptive name
+  def name
+    @name ||= "#{super} (#{@url})"
+  end
+
   # Start the server
   def run
     case @url.scheme

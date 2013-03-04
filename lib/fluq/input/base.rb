@@ -15,6 +15,11 @@ class FluQ::Input::Base
     @config  = defaults.merge(options)
   end
 
+  # @return [String] descriptive name
+  def name
+    @name ||= self.class.name.split("::")[-1].downcase
+  end
+
   # Start the input
   def run
   end

@@ -1,12 +1,10 @@
-require 'rufus/lru'
-
 class FluQ::Handler::Log < FluQ::Handler::Base
 
-  class FilePool < Rufus::Lru::SynchronizedHash
+  class FilePool < TimedLRU
 
     def open(path)
       path = path.to_s
-      self[path] ||= begin
+      self[path.to_s] ||= begin
         FileUtils.mkdir_p File.dirname(path)
         file = File.open(path, "a+")
         file.autoclose = true
@@ -25,17 +23,12 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     @full_path = FluQ.root.join(config[:path]).to_s.freeze
     @rewrite   = config[:rewrite]
     @convert   = config[:convert]
-    @pool      = FilePool.new(config[:file_max])
+    @pool      = FilePool.new max_size: config[:cache_max], ttl: config[:cache_ttl]
   end
 
   # @see FluQ::Handler::Base#on_events
   def on_events(events)
-    partition(events).each do |path, slice|
-      io = @pool.open(path)
-      slice.each do |event|
-        io.write "#{@convert.call(event)}\n"
-      end
-    end
+    partition(events).each {|path, slice| write(path, slice) }
   end
 
   protected
@@ -46,15 +39,18 @@ class FluQ::Handler::Log < FluQ::Handler::Base
         path: "log/raw/%t/%Y%m%d/%H.log",
         rewrite:  lambda {|tag| tag.gsub(".", "/") },
         convert:  lambda {|event| event.to_s },
-        file_max: 1_000
+        cache_max: 100,
+        cache_ttl: 300
     end
 
-    def open(path)
-      FileUtils.mkdir_p File.dirname(path)
-      file = File.open(path, "a+")
-      yield file
-    ensure
-      file.close if file
+    def write(path, slice, attepts = 0)
+      io = @pool.open(path)
+      slice.each do |event|
+        io.write "#{@convert.call(event)}\n"
+      end
+    rescue IOError
+      @pool.delete path.to_s
+      (attepts+=1) < 3 ? retry : raise
     end
 
     def partition(events)
