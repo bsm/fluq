@@ -35,7 +35,6 @@ describe FluQ::DSL do
   it 'should configure settings' do
     subject.configure do |c|
       c.should be(reactor)
-      c.should respond_to(:buffer_size=)
     end
   end
 

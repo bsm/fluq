@@ -1,6 +1,6 @@
-source :rubygems
+source "https://rubygems.org"
 gemspec
 
 group :development do
-  gem "yajl-ruby"
+  gem "oj"
 end

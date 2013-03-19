@@ -47,8 +47,3 @@ class FluQ::Event < Hash
   end
 
 end
-
-%w'unpacker'.each do |name|
-  require "fluq/event/#{name}"
-end
-

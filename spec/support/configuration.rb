@@ -19,4 +19,7 @@ end
 
 RSpec.configure do |c|
   c.include FluQ::SpecHelpers
+  c.after do
+    FileUtils.rm_rf FluQ.root.join("tmp").to_s
+  end
 end

@@ -7,10 +7,6 @@ class FluQ::Reactor
   # attr_reader [Array] inputs
   attr_reader :inputs
 
-  # attr_accessor [Integer] buffer size
-  #   The max. number of events to buffer events before flushing to handlers.
-  attr_reader :buffer_size
-
   # Runs the reactor within EventMachine
   def self.run
     EM.run do
@@ -24,15 +20,6 @@ class FluQ::Reactor
     super
     @handlers    = []
     @inputs      = []
-    @buffer      = []
-  end
-
-  # @param [Integer] value the max. number of events
-  #   to buffer events before flushing to handlers. Set to nil to disable.
-  def buffer_size=(value)
-    @buffer_size = value
-    flush_when_idle!
-    @buffer_size
   end
 
   # Listens to an input
@@ -60,13 +47,7 @@ class FluQ::Reactor
 
   # @param [Array<Event>] events to process
   def process(events)
-    if buffer_size
-      flush_when_idle!
-      count = @buffer.concat(events).size
-      on_events @buffer.shift(count) if count >= buffer_size
-    else
-      on_events events
-    end
+    on_events events
     true
   end
 
@@ -87,19 +68,6 @@ class FluQ::Reactor
         rescue => ex
           logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
         end
-      end
-    end
-
-  private
-
-    def flush_when_idle!
-      @flusher.cancel if @flusher
-      if buffer_size
-        @flusher = EM.add_periodic_timer(1) do
-          on_events @buffer.shift(@buffer.size) unless @buffer.empty?
-        end
-      else
-        @flusher = nil
       end
     end
 

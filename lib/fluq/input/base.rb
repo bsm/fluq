@@ -8,7 +8,7 @@ class FluQ::Input::Base
   attr_reader :config
 
   # @param [FluQ::Reactor] reactor
-  # @param [Hash] options varous configuration options
+  # @param [Hash] options various configuration options
   def initialize(reactor, options = {})
     super()
     @reactor = reactor
@@ -27,7 +27,7 @@ class FluQ::Input::Base
   protected
 
     def defaults
-      {}
+      { buffer: {} }
     end
 
 end

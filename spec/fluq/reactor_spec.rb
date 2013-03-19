@@ -2,12 +2,8 @@ require 'spec_helper'
 
 describe FluQ::Reactor do
 
-  let(:timer) { mock("Timer", cancel: true) }
-  before { EM.stub add_periodic_timer: timer }
-
   its(:handlers)    { should == [] }
   its(:inputs)      { should == [] }
-  its(:buffer_size) { should be_nil }
 
   def events(*tags)
     tags.map do |tag|
@@ -43,30 +39,6 @@ describe FluQ::Reactor do
     subject.process(events("tag")).should be(true)
     h1.events.should == [["tag", 1313131313, {}]]
     h2.events.should == []
-  end
-
-  it "should process events (when buffered)" do
-    subject.buffer_size = 10
-    h1 = subject.register(FluQ::Handler::Test)
-    9.times { subject.process(events("tag")) }
-    lambda {
-      subject.process(events("tag"))
-    }.should change {
-      h1.events.size
-    }.from(0).to(10)
-  end
-
-  it 'should allow to enable/disable buffering (with idle flusher)' do
-    EM.unstub :add_periodic_timer
-    with_reactor do |reactor|
-      lambda { reactor.buffer_size = 10 }.should change {
-        reactor.instance_variable_get(:@flusher).class.name
-      }.from("NilClass").to("EventMachine::PeriodicTimer")
-
-      lambda { reactor.buffer_size = nil }.should change {
-        reactor.instance_variable_get(:@flusher).class.name
-      }.from("EventMachine::PeriodicTimer").to("NilClass")
-    end
   end
 
   it "should skip not matching events" do

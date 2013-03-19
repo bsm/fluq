@@ -10,6 +10,12 @@ describe FluQ::Input::Socket::Connection do
 
   it 'should handle data' do
     subject.receive_data [event, event].map(&:encode).join
+    subject.send(:buffer).size.should == 32
+  end
+
+  it 'should process when data transfer is complete' do
+    subject.receive_data [event, event].map(&:encode).join
+    subject.unbind
     handler.should have(2).events
   end
 
@@ -17,6 +23,7 @@ describe FluQ::Input::Socket::Connection do
     reactor.should_receive(:process).and_raise(Errno::ECONNRESET)
     FluQ.logger.should_receive(:crash)
     subject.receive_data [event, event].map(&:encode).join
+    subject.unbind
   end
 
 end
