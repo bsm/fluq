@@ -32,12 +32,6 @@ describe FluQ::DSL do
     subject.handlers.last.first.should == FluQ::Handler::Custom::TestHandler
   end
 
-  it 'should configure settings' do
-    subject.configure do |c|
-      c.should be(reactor)
-    end
-  end
-
   it 'should evaluate configuration' do
     with_reactor do |reactor|
       dsl(reactor).run

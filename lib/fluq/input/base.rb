@@ -26,8 +26,12 @@ class FluQ::Input::Base
 
   protected
 
+    def buffer_klass
+      @buffer_klass ||= FluQ::Buffer.const_get(config[:buffer].to_s.capitalize)
+    end
+
     def defaults
-      { buffer: {} }
+      { buffer: "file", buffer_options: {} }
     end
 
 end

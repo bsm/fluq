@@ -4,7 +4,7 @@ describe FluQ::Input::Socket::Connection do
 
   let(:event)    { FluQ::Event.new("some.tag", 1313131313, {}) }
   let!(:handler) { reactor.register FluQ::Handler::Test }
-  subject        { described_class.new(Time.now.to_i, reactor) }
+  subject        { described_class.new(Time.now.to_i, reactor, FluQ::Buffer::File) }
 
   it { should be_a(EM::Connection) }
 

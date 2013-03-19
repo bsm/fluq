@@ -18,8 +18,7 @@ describe FluQ::DSL::Options do
   end
 
   it 'should store values with sub-options' do
-    subject = described_class.new { val(42) { sub 21 } }
-    subject.to_hash.should == { val: 42, val_options: { sub: 21 } }
+    described_class.new { val(42) { sub 21 } }.to_hash.should == { val: 42, val_options: { sub: 21 } }
   end
 
 end

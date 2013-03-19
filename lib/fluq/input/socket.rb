@@ -27,11 +27,11 @@ class FluQ::Input::Socket < FluQ::Input::Base
   def run
     case @url.scheme
     when 'tcp'
-      EventMachine.start_server @url.host, @url.port, self.class::Connection, @reactor, config[:buffer]
+      EventMachine.start_server @url.host, @url.port, self.class::Connection, @reactor, buffer_klass, config[:buffer_options]
     when 'udp'
-      EventMachine.open_datagram_socket @url.host, @url.port, self.class::Connection, @reactor, config[:buffer]
+      EventMachine.open_datagram_socket @url.host, @url.port, self.class::Connection, @reactor, buffer_klass, config[:buffer_options]
     when 'unix'
-      EventMachine.start_server @url.path, Connection, @reactor, config[:buffer]
+      EventMachine.start_server @url.path, Connection, @reactor, buffer_klass, config[:buffer_options]
     end
   end
 

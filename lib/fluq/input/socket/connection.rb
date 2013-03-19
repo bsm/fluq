@@ -3,10 +3,12 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
 
   # Constructor
   # @param [FluQ::Reactor] reactor
+  # @param [Class<FluQ::Buffer::Base>] buffer_klass
   # @param [Hash] options buffer options
-  def initialize(reactor, options = {})
+  def initialize(reactor, buffer_klass, options = {})
     super()
     @reactor = reactor
+    @buffer_klass = buffer_klass
     @options = options
   end
 
@@ -26,7 +28,7 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
   protected
 
     def buffer
-      @buffer ||= FluQ::Buffer::File.new(@options)
+      @buffer ||= @buffer_klass.new(@options)
     end
 
     def process!
