@@ -13,6 +13,11 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
   end
 
   # Callback
+  def post_init
+    self.comm_inactivity_timeout = 60
+  end
+
+  # Callback
   def receive_data(data)
     buffer.write(data)
     process! if buffer.full?
