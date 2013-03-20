@@ -6,10 +6,12 @@ require 'bundler/setup'
 require 'fluq'
 require 'benchmark'
 
-MultiJson.use :yajl
+ITER = 100_000
+
+MultiJson.use :oj
 FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
-events = (1..100_000).map do
+events = (1..ITER).map do
   FluQ::Event.new "a.b#{rand(4)}.c#{rand(100)}.d#{rand(100)}", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
 end
 
@@ -20,15 +22,13 @@ handler = FluQ::Handler::Log.new \
 puts "--> Started benchmark"
 processed = Benchmark.realtime do
   num = 0
-  events.each_slice(100) do |slice|
+  events.each_slice(1_000) do |slice|
     handler.on_events(slice)
     num += slice.size
     if (num % 10_000).zero?
       puts "--> Processed : #{num}"
     end
   end
-  handler = nil
-  GC.start
 end
 
 puts "--> Processed : #{events.size} in #{processed.round(1)}s"
