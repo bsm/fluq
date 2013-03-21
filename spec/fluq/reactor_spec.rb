@@ -7,7 +7,7 @@ describe FluQ::Reactor do
 
   def events(*tags)
     tags.map do |tag|
-      FluQ::Event.new("_tag" => tag, "_ts" => 1313131313)
+      FluQ::Event.new(tag, 1313131313, {})
     end
   end
 
@@ -37,14 +37,14 @@ describe FluQ::Reactor do
     h1 = subject.register(FluQ::Handler::Test)
     h2 = subject.register(FluQ::Handler::Test, pattern: "NONE")
     subject.process(events("tag")).should be(true)
-    h1.events.should == [{"_tag"=>"tag", "_ts"=>1313131313}]
+    h1.events.should == [["tag", 1313131313, {}]]
     h2.events.should == []
   end
 
   it "should skip not matching events" do
     h1 = subject.register(FluQ::Handler::Test, pattern: "some*")
     subject.process(events("some.tag", "other.tag", "something.else")).should be(true)
-    h1.events.should == [{"_tag"=>"some.tag", "_ts"=>1313131313}, {"_tag"=>"something.else", "_ts"=>1313131313}]
+    h1.events.should == [["some.tag", 1313131313, {}], ["something.else", 1313131313, {}]]
   end
 
   it "should recover crashed handlers gracefully" do

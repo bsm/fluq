@@ -30,8 +30,8 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
   def each
     file.close unless file.closed?
     stream = File.open(file, 'rb', encoding: Encoding::BINARY)
-    MessagePack::Unpacker.new(stream).each do |data|
-      yield FluQ::Event.new(data)
+    MessagePack::Unpacker.new(stream).each do |tag, timestamp, record|
+      yield FluQ::Event.new(tag, timestamp, record)
     end
   rescue EOFError
   ensure

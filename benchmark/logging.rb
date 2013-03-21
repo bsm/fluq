@@ -12,10 +12,7 @@ MultiJson.use :oj
 FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
 events = (1..ITER).map do
-  FluQ::Event.new \
-    "_tag" => "a.b#{rand(4)}.c#{rand(100)}.d#{rand(100)}",
-    "_ts" => Time.now.to_i,
-    "k1" => "value", "k2" => "value", "k3" => "value"
+  FluQ::Event.new "a.b#{rand(4)}.c#{rand(100)}.d#{rand(100)}", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
 end
 
 handler = FluQ::Handler::Log.new \
