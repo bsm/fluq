@@ -1,6 +1,4 @@
 class FluQ::Buffer::Base
-  include Enumerable
-
   MAX_SIZE = 256 * 1024 * 1024 # 256M
 
   # @attr_reader [Hash] config
@@ -12,10 +10,16 @@ class FluQ::Buffer::Base
     @config = defaults.merge(options)
   end
 
+  # @return [String] name identifier
+  def name
+    @name ||= self.class.name.split("::").last.downcase
+  end
+
   # @abstract
-  # @yield over events
-  # @yieldparam [FluQ::Event] event
-  def each
+  # @yield over io object
+  # @yieldparam [IO] io
+  def drain
+    yield StringIO.new
   end
 
   # @abstract

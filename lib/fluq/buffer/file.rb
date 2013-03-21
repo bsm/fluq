@@ -10,6 +10,11 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     @size = 0
   end
 
+  # @see FluQ::Buffer::Base#name
+  def name
+    @name ||= [super, File.basename(file.path)].join("-")
+  end
+
   # @see FluQ::Buffer::Base#write
   def write(data)
     file.write(data)
@@ -26,16 +31,13 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     File.unlink(file.path) if File.exists?(file.path)
   end
 
-  # @see FluQ::Buffer::Base#each
-  def each
+  # @see FluQ::Buffer::Base#drain
+  def drain
     file.close unless file.closed?
-    stream = File.open(file, 'rb', encoding: Encoding::BINARY)
-    MessagePack::Unpacker.new(stream).each do |tag, timestamp, record|
-      yield FluQ::Event.new(tag, timestamp, record)
-    end
-  rescue EOFError
+    io = File.open(file.path, 'rb', encoding: Encoding::BINARY)
+    yield(io)
   ensure
-    stream.close if stream
+    io.close if io
   end
 
   protected
@@ -60,7 +62,7 @@ class FluQ::Buffer::File < FluQ::Buffer::Base
     end
 
     def generate_name(index)
-      "fluq-buffer-#{(Time.now.utc.to_f * 1000).round}.#{index}"
+      "fb-#{(Time.now.utc.to_f * 1000).round}.#{index}"
     end
 
 end

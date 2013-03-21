@@ -39,7 +39,7 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
     def process!
       current = buffer
       @buffer = nil
-      current.each_slice(10_000) do |events|
+      FluQ::Feed::Msgpack.new(current).each_slice(10_000) do |events|
         @reactor.process(events)
       end
     rescue => ex

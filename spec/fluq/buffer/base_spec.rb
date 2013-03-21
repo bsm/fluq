@@ -2,13 +2,16 @@ require 'spec_helper'
 
 describe FluQ::Buffer::Base do
 
-  it { should be_a(Enumerable) }
   its(:config)  { should == {max_size: 268435456} }
-  its(:to_a)    { should == [] }
   its(:size)    { should be(0) }
+  its(:name)    { should == "base" }
   it { should respond_to(:write) }
   it { should respond_to(:close) }
   it { should_not be_full }
+
+  it 'should drain' do
+    subject.drain {|io| io.should be_instance_of(StringIO) }
+  end
 
   describe 'when size exeeds limit' do
     before { subject.stub size: 268435457 }

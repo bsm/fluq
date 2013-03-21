@@ -23,7 +23,7 @@ class FluQ::Event < Hash
 
   # @return [String] encoded bytes
   def encode
-    MessagePack.pack(to_a)
+    MessagePack.pack(merge("=" => tag, "@" => timestamp))
   end
 
   # @return [Boolean] true if comparable
