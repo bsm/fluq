@@ -15,7 +15,7 @@ describe FluQ::Handler::Base do
   end
 
   def event(tag)
-    FluQ::Event.new(tag, 1313131313, {})
+    FluQ::Event.new("_tag" => tag, "_ts" => 1313131313)
   end
 
   it 'should have a type' do

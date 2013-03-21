@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Buffer::File do
 
-  let(:event) { FluQ::Event.new("some.tag", 1313131313, {}) }
+  let(:event) { FluQ::Event.new("_tag" => "some.tag", "_ts" => 1313131313) }
 
   it           { should be_a(FluQ::Buffer::Base) }
   its(:config) { should == {max_size: 268435456, path: "tmp/buffers"} }
@@ -17,7 +17,7 @@ describe FluQ::Buffer::File do
 
   it "should write data" do
     100.times { subject.write(event.encode) }
-    subject.size.should == 1600
+    subject.size.should == 2400
   end
 
   it "should iterate over contents" do

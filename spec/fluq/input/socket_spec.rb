@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Input::Socket do
 
-  let(:event)   { FluQ::Event.new("some.tag", 1313131313, {}) }
+  let(:event)   { FluQ::Event.new("_tag" => "some.tag", "_ts" => 1313131313) }
 
   def input(reactor)
     described_class.new(reactor, bind: "tcp://127.0.0.1:26712")

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::Handler::Log do
 
   let(:event) do
-    FluQ::Event.new("my.special.tag", 1313131313, { "a" => "1" })
+    FluQ::Event.new("_tag" => "my.special.tag", "_ts" => 1313131313, "a" => "1")
   end
   let(:root) { FluQ.root.join("../scenario/log/raw") }
   subject    { described_class.new }
@@ -15,11 +15,11 @@ describe FluQ::Handler::Log do
   it "can log events" do
     subject.on_events [event]
     subject.pool.each_key {|k| subject.pool[k].flush }
-    root.join("my/special/tag/20110812/06.log").read.should == %(my.special.tag\t1313131313\t{"a":"1"}\n)
+    root.join("my/special/tag/20110812/06.log").read.should == %({"_tag":"my.special.tag","_ts":1313131313,"a":"1"}\n)
   end
 
   it 'can have custom conversions' do
-    subject = described_class.new convert: lambda {|e| e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
+    subject = described_class.new convert: lambda {|e| {a: e["a"], ts: e.timestamp}.map {|k,v| "#{k}=#{v}" }.join(',') }
     subject.on_events [event]
     subject.pool.each_key {|k| subject.pool[k].flush }
     root.join("my/special/tag/20110812/06.log").read.should == "a=1,ts=1313131313\n"

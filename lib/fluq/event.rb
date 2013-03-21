@@ -1,14 +1,20 @@
 class FluQ::Event < Hash
 
-  attr_reader :tag, :timestamp
-
-  # @param [String] tag the event tag
-  # @param [Integer] timestamp the UNIX timestamp
-  # @param [Hash] record the attribute pairs
-  def initialize(tag = "", timestamp = 0, record = {})
-    @tag, @timestamp = tag.to_s, timestamp.to_i
+  # @param [Hash] event the event record
+  def initialize(event = {})
     super()
-    update(record) if Hash === record
+    update(event) if Hash === event
+    normalize!
+  end
+
+  # @return [String] tag
+  def tag
+    self["_tag"]
+  end
+
+  # @return [Integer] timestamp
+  def timestamp
+    self["_ts"]
   end
 
   # @return [Time] UTC time
@@ -16,34 +22,35 @@ class FluQ::Event < Hash
     @time ||= Time.at(timestamp).utc
   end
 
-  # @return [Array] tuple
-  def to_a
-    [tag, timestamp, self]
-  end
-
   # @return [String] encoded bytes
   def encode
-    MessagePack.pack(to_a)
+    MessagePack.pack(self)
   end
-
-  # @return [Boolean] true if comparable
-  def ==(other)
-    case other
-    when Array
-      to_a == other
-    else
-      super
-    end
-  end
-  alias :eql? :==
 
   def to_s
-    "#{tag}\t#{timestamp}\t#{MultiJson.encode(self)}"
+    MultiJson.encode(self)
   end
 
-  # @return [String] inspection
-  def inspect
-    [tag, timestamp, Hash.new.update(self)].inspect
-  end
+  private
+
+    def normalize!
+      case self["_tag"]
+      when String
+        # Do nothing
+      when Symbol
+        self["_tag"] = self["_tag"].to_s
+      else
+        self["_tag"] = ""
+      end
+
+      case self["_ts"]
+      when Fixnum
+        # Do nothing
+      when Time, Numeric, String
+        self["_ts"] = self["_ts"].to_i
+      else
+        self["_ts"] = Time.now.to_i
+      end
+    end
 
 end
