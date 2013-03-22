@@ -4,7 +4,7 @@ PATH
     fluq (0.7.0.pre)
       eventmachine-le
       msgpack (~> 0.5.0)
-      multi_json
+      oj (>= 2.0.10)
       timed_lru
 
 GEM
@@ -13,7 +13,6 @@ GEM
     diff-lcs (1.2.1)
     eventmachine-le (1.1.4)
     msgpack (0.5.4)
-    multi_json (1.7.1)
     oj (2.0.10)
     rake (10.0.3)
     rspec (2.13.0)

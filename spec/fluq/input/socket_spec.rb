@@ -11,7 +11,7 @@ describe FluQ::Input::Socket do
   subject { input(reactor) }
   it { should be_a(FluQ::Input::Base) }
   its(:name)   { should == "socket (tcp://127.0.0.1:26712)" }
-  its(:config) { should == {buffer: "file", buffer_options: {}, bind: "tcp://127.0.0.1:26712"} }
+  its(:config) { should == {feed: "msgpack", buffer: "file", buffer_options: {}, bind: "tcp://127.0.0.1:26712"} }
 
   it 'should require bind option' do
     lambda { described_class.new(reactor) }.should raise_error(ArgumentError, /No URL to bind/)
@@ -25,7 +25,7 @@ describe FluQ::Input::Socket do
       server.run
       client = TCPSocket.open("127.0.0.1", 26712)
 
-      client.write event.encode
+      client.write event.to_msgpack
       client.close
     end
   end
@@ -36,7 +36,7 @@ describe FluQ::Input::Socket do
       h = reactor.register FluQ::Handler::Test
       reactor.listen described_class, bind: "udp://127.0.0.1:26713"
       client = UDPSocket.new
-      client.send event.encode, 0, "127.0.0.1", 26713
+      client.send event.to_msgpack, 0, "127.0.0.1", 26713
       client.close
     end
     h.should have(1).events

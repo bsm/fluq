@@ -21,11 +21,6 @@ class FluQ::Event < Hash
     [tag, timestamp, self]
   end
 
-  # @return [String] encoded bytes
-  def encode
-    MessagePack.pack(merge("=" => tag, "@" => timestamp))
-  end
-
   # @return [Boolean] true if comparable
   def ==(other)
     case other
@@ -37,8 +32,19 @@ class FluQ::Event < Hash
   end
   alias :eql? :==
 
-  def to_s
-    "#{tag}\t#{timestamp}\t#{MultiJson.encode(self)}"
+  # @return [String] tab-separated string
+  def to_tsv
+    [tag, timestamp, Oj.dump(self)].join("\t")
+  end
+
+  # @return [String] JSON encoded
+  def to_json
+    Oj.dump merge("=" => tag, "@" => timestamp)
+  end
+
+  # @return [String] mgspack encoded bytes
+  def to_msgpack
+    MessagePack.pack merge("=" => tag, "@" => timestamp)
   end
 
   # @return [String] inspection

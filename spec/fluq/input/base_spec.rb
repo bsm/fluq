@@ -8,8 +8,9 @@ describe FluQ::Input::Base do
 
   it { should be_a(FluQ::Mixins::Loggable) }
   its(:reactor) { should be(reactor) }
-  its(:config)  { should == {buffer: "file", buffer_options: {}} }
+  its(:config)  { should == {feed: "msgpack", buffer: "file", buffer_options: {}} }
   its(:name)    { should == "base" }
+  its(:feed_klass) { should == FluQ::Feed::Msgpack }
   its(:buffer_klass) { should == FluQ::Buffer::File }
 
 end

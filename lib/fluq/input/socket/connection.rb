@@ -3,13 +3,15 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
 
   # Constructor
   # @param [FluQ::Reactor] reactor
+  # @param [Class<FluQ::Feed::Base>] feed_klass
   # @param [Class<FluQ::Buffer::Base>] buffer_klass
-  # @param [Hash] options buffer options
-  def initialize(reactor, buffer_klass, options = {})
+  # @param [Hash] buffer_opts buffer options
+  def initialize(reactor, feed_klass, buffer_klass, buffer_opts = {})
     super()
     @reactor = reactor
+    @feed_klass   = feed_klass
     @buffer_klass = buffer_klass
-    @options = options
+    @buffer_opts  = buffer_opts
   end
 
   # Callback
@@ -33,13 +35,13 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
   protected
 
     def buffer
-      @buffer ||= @buffer_klass.new(@options)
+      @buffer ||= @buffer_klass.new(@buffer_opts)
     end
 
     def process!
       current = buffer
       @buffer = nil
-      FluQ::Feed::Msgpack.new(current).each_slice(10_000) do |events|
+      @feed_klass.new(current).each_slice(10_000) do |events|
         @reactor.process(events)
       end
     rescue => ex

@@ -38,7 +38,7 @@ class FluQ::Handler::Log < FluQ::Handler::Base
       super.merge \
         path: "log/raw/%t/%Y%m%d/%H.log",
         rewrite:  lambda {|tag| tag.gsub(".", "/") },
-        convert:  lambda {|event| event.to_s },
+        convert:  lambda {|event| event.to_tsv },
         cache_max: 100,
         cache_ttl: 300
     end

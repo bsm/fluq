@@ -8,7 +8,7 @@ require 'fluq'
 BATCH_SIZE = 100_000
 BATCHES    = 50
 ROOT       = FluQ.root.join("log/benchmark")
-EVENT      = FluQ::Event.new("a.b.c.d", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value").encode
+EVENT      = FluQ::Event.new("a.b.c.d", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value").to_msgpack
 
 FileUtils.rm_rf ROOT.to_s
 FileUtils.mkdir_p ROOT.to_s

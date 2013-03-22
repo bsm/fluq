@@ -1,6 +1,6 @@
 module FluQ::Feed
 end
 
-%w'base msgpack'.each do |name|
+%w'base msgpack json tsv'.each do |name|
   require "fluq/feed/#{name}"
 end

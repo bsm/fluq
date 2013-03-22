@@ -30,8 +30,12 @@ class FluQ::Input::Base
       @buffer_klass ||= FluQ::Buffer.const_get(config[:buffer].to_s.capitalize)
     end
 
+    def feed_klass
+      @feed_klass ||= FluQ::Feed.const_get(config[:feed].to_s.capitalize)
+    end
+
     def defaults
-      { buffer: "file", buffer_options: {} }
+      { buffer: "file", feed: "msgpack", buffer_options: {} }
     end
 
 end

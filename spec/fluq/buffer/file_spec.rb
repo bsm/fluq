@@ -21,25 +21,26 @@ describe FluQ::Buffer::File do
   end
 
   it "should write data" do
-    100.times { subject.write(event.encode) }
+    data = event.to_msgpack
+    100.times { subject.write(data) }
     subject.size.should == 1900
   end
 
   it "should drain contents" do
-    4.times { subject.write(event.encode) }
+    4.times { subject.write(event.to_msgpack) }
     subject.drain do |io|
-      io.read.should == ([event.encode] * 4).join
+      io.read.should == ([event.to_msgpack] * 4).join
     end
   end
 
   it "should prevent writes once buffer is 'drained'" do
-    subject.write(event.encode)
+    subject.write(event.to_msgpack)
     subject.drain {|*| }
-    lambda { subject.write(event.encode) }.should raise_error(IOError, /closed/)
+    lambda { subject.write(event.to_msgpack) }.should raise_error(IOError, /closed/)
   end
 
   it "should close and unlink files" do
-    subject.write(event.encode)
+    subject.write(event.to_msgpack)
     lambda { subject.close }.should change { File.exists?(subject.file.path) }.to(false)
   end
 

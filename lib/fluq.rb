@@ -6,7 +6,7 @@ require 'forwardable'
 require 'logger'
 require 'eventmachine'
 require 'msgpack'
-require 'multi_json'
+require 'oj'
 require 'timed_lru'
 
 module FluQ

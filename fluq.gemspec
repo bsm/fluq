@@ -21,14 +21,9 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
 
-  if defined? JRUBY_VERSION
-    s.platform = "java"
-    s.add_dependency "msgpack-jruby"
-  else
-    s.add_dependency "msgpack", "~> 0.5.0"
-  end
+  s.add_dependency "msgpack", "~> 0.5.0"
   s.add_dependency "eventmachine-le"
-  s.add_dependency "multi_json"
+  s.add_dependency "oj", ">= 2.0.10"
   s.add_dependency "timed_lru"
 
   s.add_development_dependency "rake"
