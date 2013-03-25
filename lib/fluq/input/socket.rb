@@ -25,7 +25,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   # Start the server
   def run
-    args = [self.class::Connection, @reactor, feed_klass, buffer_klass, config[:buffer_options]]
+    args = [self.class::Connection, self]
     case @url.scheme
     when 'tcp'
       EventMachine.start_server @url.host, @url.port, *args

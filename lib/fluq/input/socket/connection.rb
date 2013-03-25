@@ -2,16 +2,10 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
   include FluQ::Mixins::Loggable
 
   # Constructor
-  # @param [FluQ::Reactor] reactor
-  # @param [Class<FluQ::Feed::Base>] feed_klass
-  # @param [Class<FluQ::Buffer::Base>] buffer_klass
-  # @param [Hash] buffer_opts buffer options
-  def initialize(reactor, feed_klass, buffer_klass, buffer_opts = {})
+  # @param [FluQ::Input::Socket] parent the input
+  def initialize(parent)
     super()
-    @reactor = reactor
-    @feed_klass   = feed_klass
-    @buffer_klass = buffer_klass
-    @buffer_opts  = buffer_opts
+    @parent = parent
   end
 
   # Callback
@@ -22,32 +16,26 @@ class FluQ::Input::Socket::Connection < EventMachine::Connection
   # Callback
   def receive_data(data)
     buffer.write(data)
-    process! if buffer.full?
+    flush! if buffer.full?
   rescue => ex
     logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
   end
 
   # Callback
   def unbind
-    process!
+    flush!
   end
 
   protected
 
     def buffer
-      @buffer ||= @buffer_klass.new(@buffer_opts)
+      @buffer ||= @parent.new_buffer
     end
 
-    def process!
+    def flush!
       current = buffer
       @buffer = nil
-      @feed_klass.new(current).each_slice(10_000) do |events|
-        @reactor.process(events)
-      end
-    rescue => ex
-      logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
-    ensure
-      current.close if current
+      @parent.flush!(current)
     end
 
 end

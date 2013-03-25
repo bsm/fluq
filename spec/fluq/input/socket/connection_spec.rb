@@ -3,9 +3,9 @@ require 'spec_helper'
 describe FluQ::Input::Socket::Connection do
 
   let(:event)    { FluQ::Event.new("some.tag", 1313131313, {}) }
-  let!(:handler) { reactor.register FluQ::Handler::Test }
+  let(:input)    { FluQ::Input::Socket.new reactor, bind: "tcp://127.0.0.1:26712" }
   before         { EventMachine.stub(:set_comm_inactivity_timeout) }
-  subject        { described_class.new(Time.now.to_i, reactor, FluQ::Feed::Msgpack, FluQ::Buffer::File) }
+  subject        { described_class.new(Time.now.to_i, input) }
 
   it { should be_a(EM::Connection) }
 
@@ -19,10 +19,10 @@ describe FluQ::Input::Socket::Connection do
     subject.send(:buffer).size.should == 38
   end
 
-  it 'should process when data transfer is complete' do
+  it 'should flush when data transfer is complete' do
     subject.receive_data [event, event].map(&:to_msgpack).join
+    input.should_receive(:flush!).with(instance_of(FluQ::Buffer::File))
     subject.unbind
-    handler.should have(2).events
   end
 
   it 'should recover connection errors' do

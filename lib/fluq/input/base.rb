@@ -24,6 +24,24 @@ class FluQ::Input::Base
   def run
   end
 
+  # Creates a new buffer object
+  # @return [FluQ::Buffer::Base] a new buffer
+  def new_buffer
+    buffer_klass.new config[:buffer_options]
+  end
+
+  # Flushes and closes a buffer
+  # @param [FluQ::Buffer::Base] buffer
+  def flush!(buffer)
+    feed_klass.new(buffer).each_slice(10_000) do |events|
+      reactor.process(events)
+    end
+  rescue => ex
+    logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
+  ensure
+    buffer.close if buffer
+  end
+
   protected
 
     def buffer_klass
