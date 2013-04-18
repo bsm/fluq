@@ -63,7 +63,7 @@ module FluQ
       end
 
       # Start
-      log "Starting FluQ #{FluQ::VERSION}"
+      log "Starting FluQ #{FluQ::VERSION} (#{FluQ.env})"
       FluQ::Reactor.run do |reactor|
         FluQ::DSL.new(reactor, options[:config]).run
         procline
