@@ -8,6 +8,9 @@ class FluQ::Handler::Base
     @type ||= name.split("::")[-1].downcase
   end
 
+  # @attr_reader [FluQ::Reactor] reactor
+  attr_reader :reactor
+
   # @attr_reader [String] name unique name
   attr_reader :name
 
@@ -24,9 +27,10 @@ class FluQ::Handler::Base
   #
   #   class MyHandler < FluQ::Handler::Base
   #   end
-  #   MyHandler.new(pattern: "visits.*")
+  #   MyHandler.new(reactor, pattern: "visits.*")
   #
-  def initialize(options = {})
+  def initialize(reactor, options = {})
+    @reactor = reactor
     @config  = defaults.merge(options)
     @name    = config[:name] || generate_name
     @pattern = generate_pattern

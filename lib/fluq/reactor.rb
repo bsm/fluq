@@ -36,7 +36,7 @@ class FluQ::Reactor
   # @param [Class<FluQ::Handler::Base>] klass handler class
   # @param [multiple] args initialization arguments
   def register(klass, *args)
-    handler = klass.new(*args)
+    handler = klass.new(self, *args)
     if handlers.any? {|h| h.name == handler.name }
       raise ArgumentError, "Handler '#{handler.name}' is already registered. Please provide a unique :name option"
     end

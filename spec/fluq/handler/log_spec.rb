@@ -6,7 +6,7 @@ describe FluQ::Handler::Log do
     FluQ::Event.new("my.special.tag", 1313131313, { "a" => "1" })
   end
   let(:root) { FluQ.root.join("../scenario/log/raw") }
-  subject    { described_class.new }
+  subject    { described_class.new reactor }
   before     { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
   it { should be_a(FluQ::Handler::Base) }
@@ -19,14 +19,14 @@ describe FluQ::Handler::Log do
   end
 
   it 'can have custom conversions' do
-    subject = described_class.new convert: lambda {|e| e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
+    subject = described_class.new reactor, convert: lambda {|e| e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
     subject.on_events [event]
     subject.pool.each_key {|k| subject.pool[k].flush }
     root.join("my/special/tag/20110812/06.log").read.should == "a=1,ts=1313131313\n"
   end
 
   it 'can rewrite tags' do
-    subject = described_class.new rewrite: lambda {|t| t.split('.').reverse.first(2).join(".") }
+    subject = described_class.new reactor, rewrite: lambda {|t| t.split('.').reverse.first(2).join(".") }
     subject.on_events [event]
     root.join("tag.special/20110812/06.log").should be_file
   end
