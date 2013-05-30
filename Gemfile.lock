@@ -13,7 +13,7 @@ GEM
     diff-lcs (1.2.4)
     eventmachine-le (1.1.5)
     msgpack (0.5.5)
-    oj (2.0.13)
+    oj (2.0.14)
     rake (10.0.4)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)
