@@ -60,10 +60,12 @@ class FluQ::Reactor
 
     def on_events(events)
       handlers.each do |handler|
+        start = Time.now
         begin
-          start = Time.now
           matching = handler.select(events)
-          handler.on_events(matching) unless matching.empty?
+          next if matching.empty?
+
+          handler.on_events(matching)
           logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
         rescue => ex
           logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
