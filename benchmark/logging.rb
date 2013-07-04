@@ -6,25 +6,25 @@ require 'bundler/setup'
 require 'fluq'
 require 'benchmark'
 
-ITER = 100_000
+ITER  = 1_000
+SLICE = 1_000
 
-MultiJson.use :oj
 FileUtils.rm_rf FluQ.root.join("log/benchmark")
 
-events = (1..ITER).map do
-  FluQ::Event.new "a.b#{rand(4)}.c#{rand(100)}.d#{rand(100)}", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
+events = (1..SLICE).map do
+  FluQ::Event.new "a.b#{rand(4)}.c#{rand(10)}.d#{rand(100)}", Time.now.to_i, "k1" => "value", "k2" => "value", "k3" => "value"
 end
 
-handler = FluQ::Handler::Log.new \
+handler = FluQ::Handler::Log.new FluQ::Reactor.new,
   path: "log/benchmark/%Y%m/%d/%H/%t.log",
-  rewrite: lambda {|t| t.split(".")[1] }
+  rewrite: lambda {|t| t.split(".")[1, 2].join("-") }
 
 puts "--> Started benchmark"
 processed = Benchmark.realtime do
   num = 0
-  events.each_slice(1_000) do |slice|
-    handler.on_events(slice)
-    num += slice.size
+  ITER.times do
+    handler.on_events(events)
+    num += SLICE
     if (num % 10_000).zero?
       puts "--> Processed : #{num}"
     end
@@ -34,4 +34,4 @@ end
 puts "--> Processed : #{events.size} in #{processed.round(1)}s"
 files   = Dir[FluQ.root.join("log/benchmark/**/*.log").to_s]
 lines   = `cat #{files.join(' ')} | wc -l`.strip
-puts "--> Written   : #{lines} lines"
+puts "--> Fsynched  : #{lines} lines"
