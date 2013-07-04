@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fluq (0.7.0)
+    fluq (0.7.1)
       eventmachine-le
       msgpack (~> 0.5.0)
       oj (>= 2.0.10)
