@@ -8,6 +8,7 @@ require 'eventmachine'
 require 'msgpack'
 require 'oj'
 require 'timed_lru'
+require 'timeout'
 
 module FluQ
   %w'version error mixins'.each do |name|

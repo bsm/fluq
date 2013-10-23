@@ -4,6 +4,7 @@ describe FluQ::Reactor do
 
   its(:handlers)    { should == [] }
   its(:inputs)      { should == [] }
+  before            { FluQ::Testing.exceptions.clear }
 
   def events(*tags)
     tags.map do |tag|
@@ -53,6 +54,16 @@ describe FluQ::Reactor do
     subject.process(events("error.event"))
     10.times { subject.process(events("ok.now")) }
     h1.should have(20).events
+    FluQ::Testing.should have(1).exceptions
+    FluQ::Testing.exceptions.last.should be_instance_of(RuntimeError)
+  end
+
+  it "should recover timeouts" do
+    h1 = subject.register(FluQ::Handler::Test, timeout: 0.001)
+    h1.events.should_receive(:concat).and_return {|*| sleep(0.01) }
+    subject.process [FluQ::Event.new("ok.event", Time.now.to_i, "sleep" => 0.05)]
+    FluQ::Testing.should have(1).exceptions
+    FluQ::Testing.exceptions.last.should be_instance_of(Timeout::Error)
   end
 
 end

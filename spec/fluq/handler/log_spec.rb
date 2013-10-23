@@ -10,7 +10,7 @@ describe FluQ::Handler::Log do
   before     { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
   it { should be_a(FluQ::Handler::Base) }
-  its("config.keys") { should =~ [:convert, :path, :pattern, :rewrite, :cache_max, :cache_ttl] }
+  its("config.keys") { should =~ [:convert, :path, :pattern, :rewrite, :cache_max, :cache_ttl, :timeout] }
 
   it "can log events" do
     subject.on_events [event]

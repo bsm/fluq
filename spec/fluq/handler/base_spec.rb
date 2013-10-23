@@ -7,7 +7,7 @@ describe FluQ::Handler::Base do
   it { should respond_to(:on_events) }
   it { should be_a(FluQ::Mixins::Loggable) }
   its(:reactor) { should be(reactor) }
-  its(:config)  { should == { pattern: /./ } }
+  its(:config)  { should == { pattern: /./, timeout: 60 } }
   its(:pattern) { should == /./ }
   its(:name)    { should == "base-AxPGxv" }
 

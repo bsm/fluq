@@ -6,6 +6,7 @@ require 'rspec'
 require 'fluq/testing'
 
 FluQ.logger = Logger.new(FluQ.root.join("log", "fluq.log").to_s)
+FluQ::Testing.track_exceptions!
 
 $LOAD_PATH.unshift FluQ.root.join('lib')
 Random.srand(1234)

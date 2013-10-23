@@ -65,8 +65,12 @@ class FluQ::Reactor
           matching = handler.select(events)
           next if matching.empty?
 
-          handler.on_events(matching)
+          ::Timeout.timeout handler.config[:timeout] do
+            handler.on_events(matching)
+          end
           logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
+        rescue Timeout::Error => tx
+          logger.crash "#{handler.class.name} #{handler.name} timeout out after #{handler.config[:timeout]}s", tx
         rescue => ex
           logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
         end

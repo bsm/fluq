@@ -44,7 +44,7 @@ class FluQ::Handler::Base
   # @param [Array<FluQ::Event>] events
   # @return [Array<FluQ::Event>] matching events
   def select(events)
-    events.select &method(:match?)
+    events.select {|e| match?(e) }
   end
 
   # @abstract callback, called on each event
@@ -56,7 +56,7 @@ class FluQ::Handler::Base
 
     # Configuration defaults
     def defaults
-      { pattern: /./ }
+      { pattern: /./, timeout: 60 }
     end
 
     # @return [String] generated name
