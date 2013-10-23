@@ -7,6 +7,11 @@ describe FluQ::DSL::Options do
     subject.to_hash.should == { val: 42 }
   end
 
+  it 'should not collide with globals' do
+    subject = described_class.new { timeout 43 }
+    subject.to_hash.should == { timeout: 43 }
+  end
+
   it 'should store block options' do
     subject = described_class.new { val { 42 } }
     subject.to_hash[:val].().should == 42
