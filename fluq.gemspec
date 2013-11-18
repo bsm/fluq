@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Black Square Media"]
   s.email       = "info@blacksquaremedia.com"
   s.homepage    = "https://github.com/bsm/fluq"
+  s.license     = ["MIT"]
 
   s.require_path = 'lib'
   s.executables = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
@@ -25,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency "eventmachine-le"
   s.add_dependency "oj", ">= 2.0.10"
   s.add_dependency "timed_lru"
+  s.add_dependency "parallel"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "bundler"

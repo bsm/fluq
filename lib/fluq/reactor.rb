@@ -59,22 +59,21 @@ class FluQ::Reactor
   protected
 
     def on_events(events)
-      handlers.each do |handler|
-        start = Time.now
-        begin
-          matching = handler.select(events)
-          next if matching.empty?
+      handlers.map do |handler|
+        Thread.new { handle(handler, Time.now, events) }
+      end.each(&:join)
+    end
 
-          ::Timeout.timeout handler.config[:timeout] do
-            handler.on_events(matching)
-          end
-          logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
-        rescue Timeout::Error => tx
-          logger.crash "#{handler.class.name} #{handler.name} timeout out after #{handler.config[:timeout]}s", tx
-        rescue => ex
-          logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
-        end
-      end
+    def handle(handler, start, events)
+      matching = handler.select(events)
+      ::Timeout.timeout handler.config[:timeout] do
+        handler.on_events(matching)
+      end unless matching.empty?
+      logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
+    rescue Timeout::Error => tx
+      logger.crash "#{handler.class.name} #{handler.name} timeout out after #{handler.config[:timeout]}s", tx
+    rescue => ex
+      logger.crash "#{handler.class.name} #{handler.name} failed: #{ex.class.name} #{ex.message}", ex
     end
 
 end
