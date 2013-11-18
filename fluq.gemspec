@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Black Square Media"]
   s.email       = "info@blacksquaremedia.com"
   s.homepage    = "https://github.com/bsm/fluq"
-  s.license     = ["MIT"]
+  s.licenses    = ["MIT"]
 
   s.require_path = 'lib'
   s.executables = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
