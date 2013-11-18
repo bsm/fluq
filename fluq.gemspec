@@ -26,7 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency "eventmachine-le"
   s.add_dependency "oj", ">= 2.0.10"
   s.add_dependency "timed_lru"
-  s.add_dependency "parallel"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "bundler"
