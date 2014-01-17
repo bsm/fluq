@@ -1,8 +1,7 @@
 class FluQ::Input::Base
+  include Celluloid::IO
   include FluQ::Mixins::Loggable
-
-  # @attr_reader [FluQ::Reactor] reactor reference
-  attr_reader :reactor
+  finalizer :before_terminate
 
   # @attr_reader [Hash] config
   attr_reader :config
@@ -11,8 +10,8 @@ class FluQ::Input::Base
   # @param [Hash] options various configuration options
   def initialize(reactor, options = {})
     super()
-    @reactor = reactor
-    @config  = defaults.merge(options)
+    @config = defaults.merge(options)
+    @supviz = FluQ::Worker.supervise reactor.handlers
   end
 
   # @return [String] descriptive name
@@ -22,38 +21,36 @@ class FluQ::Input::Base
 
   # Start the input
   def run
+    logger.info "Listening to #{name}"
   end
 
-  # Creates a new buffer object
-  # @return [FluQ::Buffer::Base] a new buffer
-  def new_buffer
-    buffer_klass.new config[:buffer_options]
+  # Processes data
+  # @param [String] data
+  def process(data)
+    worker.process feed.parse(data)
   end
 
-  # Flushes and closes a buffer
-  # @param [FluQ::Buffer::Base] buffer
-  def flush!(buffer)
-    feed_klass.new(buffer).each_slice(10_000) do |events|
-      reactor.process(events)
-    end
-  rescue => ex
-    logger.crash "#{self.class.name} failure: #{ex.message} (#{ex.class.name})", ex
-  ensure
-    buffer.close if buffer
+  # @attr_reader [FluQ::Worker] worker instance
+  def worker
+    @supviz.actors.first
   end
 
   protected
 
-    def buffer_klass
-      @buffer_klass ||= FluQ::Buffer.const_get(config[:buffer].to_s.capitalize)
+    # @abstract callback after initialize termination
+    def after_initialize
     end
 
-    def feed_klass
-      @feed_klass ||= FluQ::Feed.const_get(config[:feed].to_s.capitalize)
+    # @abstract callback before termination
+    def before_terminate
+    end
+
+    def feed
+      @feed ||= FluQ::Feed.const_get(config[:feed].to_s.capitalize).new(config[:feed_options])
     end
 
     def defaults
-      { buffer: "file", feed: "msgpack", buffer_options: {} }
+      { feed: "msgpack", feed_options: {} }
     end
 
 end

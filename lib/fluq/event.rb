@@ -1,12 +1,13 @@
 class FluQ::Event < Hash
 
-  attr_reader :tag, :timestamp
+  attr_accessor :timestamp
+  attr_reader :meta
 
-  # @param [String] tag the event tag
-  # @param [Integer] timestamp the UNIX timestamp
   # @param [Hash] record the attribute pairs
-  def initialize(tag = "", timestamp = 0, record = {})
-    @tag, @timestamp = tag.to_s, timestamp.to_i
+  # @param [Integer] timestamp the UNIX timestamp
+  def initialize(record = {}, timestamp = Time.now)
+    @timestamp = timestamp.to_i
+    @meta = {}
     super()
     update(record) if Hash === record
   end
@@ -16,40 +17,20 @@ class FluQ::Event < Hash
     @time ||= Time.at(timestamp).utc
   end
 
-  # @return [Array] tuple
-  def to_a
-    [tag, timestamp, self]
-  end
-
   # @return [Boolean] true if comparable
   def ==(other)
     case other
-    when Array
-      to_a == other
+    when FluQ::Event
+      super && other.timestamp == timestamp
     else
       super
     end
   end
   alias :eql? :==
 
-  # @return [String] tab-separated string
-  def to_tsv
-    [tag, timestamp, Oj.dump(self)].join("\t")
-  end
-
-  # @return [String] JSON encoded
-  def to_json
-    Oj.dump merge("=" => tag, "@" => timestamp)
-  end
-
-  # @return [String] mgspack encoded bytes
-  def to_msgpack
-    MessagePack.pack merge("=" => tag, "@" => timestamp)
-  end
-
   # @return [String] inspection
   def inspect
-    [tag, timestamp, Hash.new.update(self)].inspect
+    "#<FluQ::Event(#{timestamp}) data:#{super} meta:#{meta.inspect}>"
   end
 
 end

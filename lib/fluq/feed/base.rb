@@ -1,37 +1,42 @@
 class FluQ::Feed::Base
-  include Enumerable
   include FluQ::Mixins::Loggable
   extend FluQ::Mixins::Loggable
 
-  # @abstract enumerator
+  # @abstract converter
   # @param [String] raw event string
   # @return [FluQ::Event] event
   def self.to_event(raw)
   end
 
-  # @attr_reader [FluQ::Buffer::Base] buffer
-  attr_reader :buffer
-
-  # @param [FluQ::Buffer::Base] buffer
-  def initialize(buffer)
-    @buffer = buffer
+  # @abstract initializer
+  # @param [Hash] options feed-specific options
+  def initialize(options = {})
+    @options = options
   end
 
-  # @yield ober a feed of events
-  # @yieldparam [FluQ::Event] event
-  def each
-    each_raw do |raw|
-      event = self.class.to_event(raw)
-      yield event if event
+  # @abstract parse data, return events
+  # @param [String] data
+  # @return [Array<FluQ::Event>] events
+  def parse(data)
+    events = []
+    feed(data) do |raw|
+      if event = self.class.to_event(raw)
+        events.push(event)
+        true
+      else
+        false
+      end
     end
+    events
   end
 
   protected
 
     # @abstract enumerator
-    # @yield ober a feed of raw events
-    # @yieldparam [String] raw event
-    def each_raw
+    # @param [String] data
+    # @yield over feed of raw events
+    # @yieldparam [Hash] raw event data
+    def feed(data)
     end
 
 end

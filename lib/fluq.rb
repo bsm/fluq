@@ -1,14 +1,17 @@
 require 'pathname'
 require 'uri'
 require 'fileutils'
+require 'stringio'
+require 'thread'
 require 'securerandom'
 require 'forwardable'
 require 'logger'
-require 'eventmachine'
 require 'msgpack'
 require 'oj'
 require 'timed_lru'
 require 'timeout'
+require 'celluloid/io'
+require 'celluloid/autostart'
 
 module FluQ
   %w'version error mixins'.each do |name|
@@ -19,13 +22,16 @@ module FluQ
 
     # @attr_reader [String] env runtime environemnt
     # @attr_reader [Pathname] root project root
-    # @attr_reader [Logger] logger the main logger
-    attr_reader :env, :root, :logger
+    attr_reader :env, :root
 
-    # @param [Logger] instance the thread-safe logger instance
-    def logger=(instance)
-      instance.extend(FluQ::Mixins::Logger)
-      @logger = instance
+    # @param [Logger] logger
+    def logger=(logger)
+      Celluloid.logger = logger
+    end
+
+    # @return [Logger]  the thread-safe logger instance
+    def logger
+      Celluloid.logger
     end
 
     def init!
@@ -46,6 +52,6 @@ module FluQ
   init!
 end
 
-%w'url event reactor handler input buffer feed dsl'.each do |name|
+%w'url event reactor worker handler input feed dsl'.each do |name|
   require "fluq/#{name}"
 end

@@ -1,12 +1,12 @@
-class FluQ::Feed::Tsv < FluQ::Feed::Base
+class FluQ::Feed::Tsv < FluQ::Feed::Lines
 
   # @see FluQ::Feed::Base.to_event
   def self.to_event(raw)
-    tag, timestamp, json = raw.split("\t")
+    timestamp, json = raw.split("\t")
 
     case hash = Oj.load(json)
     when Hash
-      FluQ::Event.new tag, timestamp, hash
+      FluQ::Event.new hash, timestamp
     else
       logger.warn "buffer contained invalid event #{hash.inspect}"
       nil
@@ -15,16 +15,5 @@ class FluQ::Feed::Tsv < FluQ::Feed::Base
     logger.warn "buffer contained invalid line #{raw.inspect}"
     nil
   end
-
-  protected
-
-    # @see [FluQ::Feed::Base] each_raw
-    def each_raw
-      buffer.drain do |io|
-        while line = io.gets
-          yield line
-        end
-      end
-    end
 
 end

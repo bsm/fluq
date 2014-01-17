@@ -20,10 +20,10 @@ class FluQ::Handler::Log < FluQ::Handler::Base
   # @see FluQ::Handler::Base#initialize
   def initialize(*)
     super
-    @full_path = FluQ.root.join(config[:path]).to_s.freeze
-    @rewrite   = config[:rewrite]
-    @convert   = config[:convert]
-    @pool      = FilePool.new max_size: config[:cache_max], ttl: config[:cache_ttl]
+    @path    = config[:path]
+    @rewrite = config[:rewrite]
+    @convert = config[:convert]
+    @pool    = FilePool.new max_size: config[:cache_max], ttl: config[:cache_ttl]
   end
 
   # @see FluQ::Handler::Base#on_events
@@ -36,9 +36,8 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     # Configuration defaults
     def defaults
       super.merge \
-        path: "log/raw/%t/%Y%m%d/%H.log",
-        rewrite:  lambda {|tag| tag.gsub(".", "/") },
-        convert:  lambda {|event| event.to_tsv },
+        path:     "log/raw/%Y%m%d.log",
+        convert:  ->evt { [evt.timestamp, Oj.dump(evt)].join("\t") },
         cache_max: 100,
         cache_ttl: 300
     end
@@ -46,7 +45,7 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     def write(path, slice, attepts = 0)
       io = @pool.open(path)
       slice.each do |event|
-        io.write "#{@convert.call(event)}\n"
+        io.write @convert.call(event) << "\n"
       end
     rescue IOError
       @pool.delete path.to_s
@@ -54,12 +53,11 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     end
 
     def partition(events)
-      paths = {}
+      paths = Hash.new {|h,k| h[k] = [] }
       events.each do |event|
-        tag  = @rewrite.call(event.tag)
-        path = event.time.strftime(@full_path.gsub("%t", tag))
-        paths[path] ||= []
-        paths[path]  << event
+        tag  = @rewrite ? @rewrite.call(event).to_s : ""
+        path = event.time.strftime(FluQ.root.join(@path).to_s.gsub("%t", tag))
+        paths[path] << event
       end
       paths
     end

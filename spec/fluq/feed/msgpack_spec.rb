@@ -2,26 +2,21 @@ require 'spec_helper'
 
 describe FluQ::Feed::Msgpack do
 
-  let(:buffer) { FluQ::Buffer::Base.new }
-  let(:event)  { FluQ::Event.new("some.tag", 1313131313, "a" => "b") }
-
-  before do
-    io = StringIO.new [event, event, event].map(&:to_msgpack).join
-    buffer.stub(:drain).and_yield(io)
-  end
-
-  subject do
-    described_class.new(buffer)
-  end
+  let(:data) { ([{"a" => "b"}] * 3).map(&:to_msgpack).join }
 
   it { should be_a(FluQ::Feed::Base) }
-  its(:to_a) { should == [event, event, event] }
+
+  it 'should parse' do
+    events = subject.parse(data)
+    events.should have(3).items
+    events.first.timestamp.should be_within(5).of(Time.now.to_i)
+    events.first.should == FluQ::Event.new({"a" => "b"}, events.first.timestamp)
+  end
 
   it 'should log invalid inputs' do
-    io = StringIO.new [event.to_msgpack, "ABCD", event.to_msgpack].join
-    buffer.stub(:drain).and_yield(io)
     subject.logger.should_receive(:warn).at_least(:once)
-    subject.to_a.should == [event, event]
+    events = subject.parse data + "NOTMP" + data
+    events.should have(6).items
   end
 
 end

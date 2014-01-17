@@ -2,24 +2,29 @@ require 'spec_helper'
 
 describe FluQ::Event do
 
-  subject { described_class.new :"some.tag", "1313131313", "a" => "v1", "b" => "v2" }
+  subject { described_class.new({"a" => "v1", "b" => "v2"}, "1313131313") }
 
   it { should be_a(Hash) }
-  its(:tag)        { should == "some.tag" }
+  its(:meta)       { should == {} }
   its(:timestamp)  { should == 1313131313 }
   its(:time)       { should be_instance_of(Time) }
   its(:time)       { should be_utc }
-  its(:to_a)       { should == ["some.tag", 1313131313, "a" => "v1", "b" => "v2"] }
-  its(:to_tsv)     { should == %(some.tag\t1313131313\t{"a":"v1","b":"v2"}) }
-  its(:to_json)    { should == %({"a":"v1","b":"v2","=":"some.tag","@":1313131313}) }
-  its(:to_msgpack) { should == "\x84\xA1a\xA2v1\xA1b\xA2v2\xA1=\xA8some.tag\xA1@\xCEND\xCB1".force_encoding(Encoding::BINARY) }
-  its(:inspect)    { should == %(["some.tag", 1313131313, {"a"=>"v1", "b"=>"v2"}]) }
 
   it "should be comparable" do
-    subject.should == { "a" => "v1", "b" => "v2" }
-    subject.should == ["some.tag", 1313131313, "a" => "v1", "b" => "v2"]
-    [subject].should == [{ "a" => "v1", "b" => "v2" }]
-    [subject, subject].should == [["some.tag", 1313131313, "a" => "v1", "b" => "v2"]] * 2
+    other = described_class.new({"a" => "v1", "b" => "v2"}, "1313131313")
+
+    subject.should == other
+    other.meta[:some] = "thing"
+    subject.should == other
+    other["c"] = "d"
+    subject.should_not == other
+    subject.should_not == described_class.new({"a" => "v1", "b" => "v2"}, "1313131312")
+  end
+
+  it "should be inspectable" do
+    subject.inspect.should == %(#<FluQ::Event(1313131313) data:{"a"=>"v1", "b"=>"v2"} meta:{}>)
+    subject.meta[:some] = "thing"
+    subject.inspect.should == %(#<FluQ::Event(1313131313) data:{"a"=>"v1", "b"=>"v2"} meta:{:some=>"thing"}>)
   end
 
 end

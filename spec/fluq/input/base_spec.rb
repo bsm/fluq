@@ -2,28 +2,47 @@ require 'spec_helper'
 
 describe FluQ::Input::Base do
 
-  let(:event)    { FluQ::Event.new("some.tag", 1313131313, {}) }
   let!(:handler) { reactor.register FluQ::Handler::Test }
-  subject        { described_class.new(reactor, feed: "json") }
+  let(:data)     { [{"a" => 1}, {"b" => 2}].map(&:to_msgpack).join }
+  subject        { described_class.new(reactor, feed: "msgpack") }
+  let(:jinput)   { described_class.new(reactor, feed: "json") }
 
   it { should be_a(FluQ::Mixins::Loggable) }
-  its(:reactor) { should be(reactor) }
-  its(:config)  { should == {feed: "json", buffer: "file", buffer_options: {}} }
+  its(:wrapped_object) { should be_instance_of(described_class) }
+  its(:worker)  { should be_instance_of(FluQ::Worker) }
+  its(:config)  { should == {feed: "msgpack", feed_options: {}} }
   its(:name)    { should == "base" }
-  its(:feed_klass) { should == FluQ::Feed::Json }
-  its(:buffer_klass) { should == FluQ::Buffer::File }
+  its(:feed)    { should be_instance_of(FluQ::Feed::Msgpack) }
 
-  it 'should create new buffers' do
-    (b1 = subject.new_buffer).should be_instance_of(FluQ::Buffer::File)
-    (b2 = subject.new_buffer).should be_instance_of(FluQ::Buffer::File)
-    b1.should_not be(b2)
+  it 'should process' do
+    subject.process(data)
+    handler.should have(2).events
   end
 
-  it 'should flush buffers' do
-    buf = subject.new_buffer
-    buf.write [event, event].map(&:to_json).join("\n")
-    subject.flush!(buf)
+  it 'should handle partial messages' do
+    m1, m2 = data + data[0..1], data[2..-1]
+    subject.process(m1)
     handler.should have(2).events
+    subject.process(m2)
+    handler.should have(4).events
+
+    m1, m2 = data[0..-3], data[-3..-1] + data
+    subject.process(m1)
+    handler.should have(5).events
+    subject.process(m2)
+    handler.should have(8).events
+
+    m1, m2 = %({"a":1,"b":2}\n{"a":1,"b":2}\n{"a":1), %(,"b":2}\n{"a":1,"b":2}\n)
+    jinput.process(m1)
+    handler.should have(10).events
+    jinput.process(m2)
+    handler.should have(12).events
+
+    m1, m2 = %({"a":1,"b":2}\n{"a":1,), %("b":2}\n{"a":1,"b":2}\n{"a":1,"b":2}\n)
+    jinput.process(m1)
+    handler.should have(13).events
+    jinput.process(m2)
+    handler.should have(16).events
   end
 
 end

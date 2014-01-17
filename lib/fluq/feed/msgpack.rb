@@ -2,26 +2,27 @@ class FluQ::Feed::Msgpack < FluQ::Feed::Base
 
   # @see FluQ::Feed::Base.to_event
   def self.to_event(raw)
-    raw = MessagePack.unpack(raw) if raw.is_a?(String)
-
     case raw
     when Hash
-      FluQ::Event.new raw.delete("="), raw.delete("@"), raw
+      FluQ::Event.new(raw)
     else
       logger.warn "buffer contained invalid event #{raw.inspect}"
       nil
     end
   end
 
+  # Msgpack initializer
+  # @see FluQ::Feed::Base#initialize
+  def initialize(*)
+    super
+    @buffer = MessagePack::Unpacker.new
+  end
+
   protected
 
-    # @see [FluQ::Feed::Base] each
-    def each_raw(&block)
-      buffer.drain do |io|
-        pac = MessagePack::Unpacker.new(io)
-        pac.each(&block)
-      end
-    rescue EOFError
+    # @see FluQ::Feed::Base#feed
+    def feed(data, &block)
+      @buffer.feed_each(data, &block)
     end
 
 end

@@ -2,26 +2,20 @@ require 'spec_helper'
 
 describe FluQ::Feed::Tsv do
 
-  let(:buffer) { FluQ::Buffer::Base.new }
-  let(:event)  { FluQ::Event.new("some.tag", 1313131313, "a" => "b") }
+  let(:data) { %(1313131313\t{"a":"b"}\n1313131313\t{"a":"b"}\n1313131313\t{"a":"b"}\n) }
 
-  before do
-    io = StringIO.new [event, event, event].map(&:to_tsv).join("\n")
-    buffer.stub(:drain).and_yield(io)
+  it { should be_a(FluQ::Feed::Lines) }
+
+  it 'should parse' do
+    events = subject.parse(data)
+    events.should have(3).items
+    events.first.should == FluQ::Event.new({"a" => "b"}, 1313131313)
   end
-
-  subject do
-    described_class.new(buffer)
-  end
-
-  it { should be_a(FluQ::Feed::Base) }
-  its(:to_a) { should == [event, event, event] }
 
   it 'should log invalid inputs' do
-    io = StringIO.new [event.to_tsv, "ABCD", event.to_tsv].join("\n")
-    buffer.stub(:drain).and_yield(io)
-    subject.logger.should_receive(:warn).at_least(:once)
-    subject.to_a.should == [event, event]
+    subject.logger.should_receive(:warn).once
+    events = subject.parse data + %(NOTTSV\n1313131313\t{"a":"b"}\n\n)
+    events.should have(4).items
   end
 
 end

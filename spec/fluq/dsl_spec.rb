@@ -5,10 +5,7 @@ describe FluQ::DSL do
   def dsl(reactor)
     described_class.new reactor, FluQ.root.join('../scenario/config/test.rb')
   end
-
-  subject do
-    dsl(reactor)
-  end
+  subject { dsl(reactor) }
 
   it 'should find & configure input' do
     subject.input(:socket) do
@@ -33,11 +30,9 @@ describe FluQ::DSL do
   end
 
   it 'should evaluate configuration' do
-    with_reactor do |reactor|
-      dsl(reactor).run
-      reactor.should have(1).handlers
-      reactor.should have(1).inputs
-    end
+    dsl(reactor).run
+    reactor.should have(1).handlers
+    reactor.should have(1).inputs
   end
 
 end

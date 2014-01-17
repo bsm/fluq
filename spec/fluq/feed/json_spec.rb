@@ -2,26 +2,21 @@ require 'spec_helper'
 
 describe FluQ::Feed::Json do
 
-  let(:buffer) { FluQ::Buffer::Base.new }
-  let(:event)  { FluQ::Event.new("some.tag", 1313131313, "a" => "b") }
+  let(:data) { %({"a":"b"}\n{"a":"b"}\n{"a":"b"}\n) }
 
-  before do
-    io = StringIO.new [event, event, event].map(&:to_json).join("\n")
-    buffer.stub(:drain).and_yield(io)
+  it { should be_a(FluQ::Feed::Lines) }
+
+  it 'should parse' do
+    events = subject.parse(data)
+    events.should have(3).items
+    events.first.timestamp.should be_within(5).of(Time.now.to_i)
+    events.first.should == FluQ::Event.new({"a" => "b"}, events.first.timestamp)
   end
-
-  subject do
-    described_class.new(buffer)
-  end
-
-  it { should be_a(FluQ::Feed::Base) }
-  its(:to_a) { should == [event, event, event] }
 
   it 'should log invalid inputs' do
-    io = StringIO.new [event.to_json, "ABCD", event.to_json].join("\n")
-    buffer.stub(:drain).and_yield(io)
-    subject.logger.should_receive(:warn).at_least(:once)
-    subject.to_a.should == [event, event]
+    subject.logger.should_receive(:warn).once
+    events = subject.parse data + %(NOTJSON\n{"a":"b"}\n\n{"a":"b"})
+    events.should have(5).items
   end
 
 end

@@ -22,8 +22,8 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
 
+  s.add_dependency "celluloid-io", "~> 0.15.0"
   s.add_dependency "msgpack", "~> 0.5.0"
-  s.add_dependency "eventmachine-le"
   s.add_dependency "oj", ">= 2.0.10"
   s.add_dependency "timed_lru"
 
