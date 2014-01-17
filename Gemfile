@@ -12,5 +12,6 @@ platform :jruby do
 end
 
 platform :rbx do
-  gem "rubysl"
+  gem "rubysl-logger"
+  gem "rubysl-singleton"
 end
