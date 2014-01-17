@@ -33,7 +33,7 @@ describe FluQ::Worker do
     h1 = subject.handlers.push(BadHandler.new).last
     -> {
       subject.process(events(1))
-    }.should raise_error(RuntimeError, "can't modify frozen Array")
+    }.should raise_error(RuntimeError, /frozen/)
   end
 
   it "should skip filtered events" do

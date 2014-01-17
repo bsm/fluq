@@ -18,8 +18,7 @@ describe FluQ::Input::Socket do
     end
   end
 
-
-  subject { input bind: "tcp://127.0.0.1:26712" }
+  subject { input bind: "tcp://127.0.0.1:26712", feed: "msgpack" }
   after   { actors.each &:terminate }
 
   it { should be_a(FluQ::Input::Base) }
@@ -35,7 +34,7 @@ describe FluQ::Input::Socket do
     wait_for(subject)
 
     client = TCPSocket.open("127.0.0.1", 26712)
-    client.write event.to_msgpack
+    client.write MessagePack.pack(event)
     client.close
     subject.worker.should have(1).handlers
     subject.worker.handlers.first.should have(1).events
@@ -43,11 +42,11 @@ describe FluQ::Input::Socket do
 
   it 'should support UDP' do
     reactor.register(FluQ::Handler::Test)
-    udp = input bind: "udp://127.0.0.1:26713"
+    udp = input bind: "udp://127.0.0.1:26713", feed: "msgpack"
     wait_for(udp)
 
     client = UDPSocket.new
-    client.send event.to_msgpack, 0, "127.0.0.1", 26713
+    client.send MessagePack.pack(event), 0, "127.0.0.1", 26713
     client.close
     udp.worker.should have(1).handlers
     udp.worker.handlers.first.should have(1).events

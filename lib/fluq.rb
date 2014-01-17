@@ -6,12 +6,16 @@ require 'thread'
 require 'securerandom'
 require 'forwardable'
 require 'logger'
-require 'msgpack'
-require 'oj'
 require 'timed_lru'
 require 'timeout'
 require 'celluloid/io'
 require 'celluloid/autostart'
+require 'multi_json'
+
+begin
+  require 'msgpack'
+rescue LoadError
+end
 
 module FluQ
   %w'version error mixins'.each do |name|

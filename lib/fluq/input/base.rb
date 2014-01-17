@@ -50,7 +50,7 @@ class FluQ::Input::Base
     end
 
     def defaults
-      { feed: "msgpack", feed_options: {} }
+      { feed: "json", feed_options: {} }
     end
 
 end

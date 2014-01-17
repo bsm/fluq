@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FluQ::Feed::Msgpack do
 
-  let(:data) { ([{"a" => "b"}] * 3).map(&:to_msgpack).join }
+  let(:data) { ([{"a" => "b"}] * 3).map {|h| MessagePack.pack(h) }.join }
 
   it { should be_a(FluQ::Feed::Base) }
 

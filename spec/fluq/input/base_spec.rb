@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::Input::Base do
 
   let!(:handler) { reactor.register FluQ::Handler::Test }
-  let(:data)     { [{"a" => 1}, {"b" => 2}].map(&:to_msgpack).join }
+  let(:data)     { [{"a" => 1}, {"b" => 2}].map {|h| MessagePack.pack(h) }.join }
   subject        { described_class.new(reactor, feed: "msgpack") }
   let(:jinput)   { described_class.new(reactor, feed: "json") }
 

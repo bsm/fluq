@@ -25,4 +25,4 @@ class FluQ::Feed::Msgpack < FluQ::Feed::Base
       @buffer.feed_each(data, &block)
     end
 
-end
+end if defined?(MessagePack)

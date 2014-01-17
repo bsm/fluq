@@ -4,14 +4,14 @@ class FluQ::Feed::Tsv < FluQ::Feed::Lines
   def self.to_event(raw)
     timestamp, json = raw.split("\t")
 
-    case hash = Oj.load(json)
+    case hash = MultiJson.load(json)
     when Hash
       FluQ::Event.new hash, timestamp
     else
       logger.warn "buffer contained invalid event #{hash.inspect}"
       nil
     end
-  rescue Oj::ParseError, ArgumentError
+  rescue MultiJson::LoadError, ArgumentError
     logger.warn "buffer contained invalid line #{raw.inspect}"
     nil
   end

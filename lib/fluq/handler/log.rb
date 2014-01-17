@@ -37,7 +37,7 @@ class FluQ::Handler::Log < FluQ::Handler::Base
     def defaults
       super.merge \
         path:     "log/raw/%Y%m%d.log",
-        convert:  ->evt { [evt.timestamp, Oj.dump(evt)].join("\t") },
+        convert:  ->evt { [evt.timestamp, MultiJson.dump(evt)].join("\t") },
         cache_max: 100,
         cache_ttl: 300
     end
