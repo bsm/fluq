@@ -11,17 +11,23 @@ class FluQ::Input::Base
   def initialize(handlers, options = {})
     super()
     @config = defaults.merge(options)
-    @sup = FluQ::Worker.supervise handlers
+    configure
+    @sup = FluQ::Worker.supervise name, handlers
   end
 
-  # @return [String] descriptive name
+  # @return [String] short name
   def name
     @name ||= self.class.name.split("::")[-1].downcase
   end
 
+  # @return [String] descriptive name
+  def description
+    name
+  end
+
   # Start the input
   def run
-    logger.info "Listening to #{name}"
+    logger.info "Listening to #{description}"
   end
 
   # Processes data
@@ -37,8 +43,8 @@ class FluQ::Input::Base
 
   protected
 
-    # @abstract callback after initialize termination
-    def after_initialize
+    # @abstract callback for configuration initialization
+    def configure
     end
 
     # @abstract callback before termination

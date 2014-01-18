@@ -24,7 +24,7 @@ class FluQ::Handler::Base
   #
   def initialize(options = {})
     @config  = defaults.merge(options)
-    @name    = config[:name] || generate_name
+    @name    = config[:name] || self.class.type
   end
 
   # @param [Array<FluQ::Event>] events
@@ -43,12 +43,6 @@ class FluQ::Handler::Base
     # Configuration defaults
     def defaults
       { timeout: 60 }
-    end
-
-    # @return [String] generated name
-    def generate_name
-      suffix = [Digest::MD5.digest(config.inspect)].pack("m0").tr('+/=lIO0', 'pqrsxyz')[0,6]
-      [self.class.type, suffix].join("-")
     end
 
 end

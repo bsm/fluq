@@ -2,10 +2,11 @@ class FluQ::Worker
   include Celluloid
   include FluQ::Mixins::Loggable
 
-  attr_reader :handlers
+  attr_reader :prefix, :handlers
 
   # @param [Array<Class,Array>] handlers handler builders
-  def initialize(handlers = [])
+  def initialize(prefix, handlers = [])
+    @prefix   = prefix
     @handlers = handlers.map do |klass, *args|
       klass.new(*args)
     end
@@ -26,8 +27,8 @@ class FluQ::Worker
       matching = handler.filter(events)
       ::Timeout.timeout handler.config[:timeout] do
         handler.on_events(matching)
+        logger.info { "#{prefix}:#{handler.name} #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
       end unless matching.empty?
-      logger.info { "#{handler.name} processed #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
     end
 
 end

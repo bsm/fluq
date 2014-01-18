@@ -14,6 +14,7 @@ describe FluQ::Input::Base do
   its(:worker)  { should be_instance_of(FluQ::Worker) }
   its(:config)  { should == {format: "msgpack", format_options: {}} }
   its(:name)    { should == "base" }
+  its(:description) { should == "base" }
   its(:format)  { should be_instance_of(FluQ::Format::Msgpack) }
 
   it 'should process' do

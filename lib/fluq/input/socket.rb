@@ -14,16 +14,17 @@ class FluQ::Input::Socket < FluQ::Input::Base
   #
   def initialize(*)
     super
-
-    raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
-    @url = FluQ::URL.parse(config[:bind], protocols)
-
     async.run
   end
 
-  # @return [String] descriptive name
+  # @return [String] short name
   def name
-    @name ||= "#{super} (#{@url})"
+    @url ? @url.scheme : super
+  end
+
+  # @return [String] descriptive name
+  def description
+    "socket (#{@url})"
   end
 
   # Start the server
@@ -54,9 +55,10 @@ class FluQ::Input::Socket < FluQ::Input::Base
 
   protected
 
-    # @return [Array] supported protocols
-    def protocols
-      ["tcp", "udp", "unix"]
+    # @abstract callback for configuration initialization
+    def configure
+      raise ArgumentError, 'No URL to bind to provided, make sure you pass :bind option' unless config[:bind]
+      @url = FluQ::URL.parse config[:bind], %w|tcp udp unix|
     end
 
     # Handle a single connection

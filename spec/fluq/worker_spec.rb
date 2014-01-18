@@ -19,10 +19,11 @@ describe FluQ::Worker do
   end
 
   subject do
-    described_class.new [[FluQ::Handler::Test]]
+    described_class.new "src", [[FluQ::Handler::Test]]
   end
 
   its(:wrapped_object)  { should be_instance_of(described_class) }
+  its(:prefix)          { should == "src" }
   its(:handlers)        { should have(1).items }
   its("handlers.first") { should be_instance_of(FluQ::Handler::Test) }
 

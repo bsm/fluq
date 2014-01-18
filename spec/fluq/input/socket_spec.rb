@@ -22,7 +22,8 @@ describe FluQ::Input::Socket do
   after   { actors.each &:terminate }
 
   it { should be_a(FluQ::Input::Base) }
-  its(:name)   { should == "socket (tcp://127.0.0.1:26712)" }
+  its(:description) { should == "socket (tcp://127.0.0.1:26712)" }
+  its(:name)        { should == "tcp" }
   its(:config) { should == {format: "msgpack", format_options: {}, bind: "tcp://127.0.0.1:26712"} }
 
   it 'should require bind option' do
