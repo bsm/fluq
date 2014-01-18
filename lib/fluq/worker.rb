@@ -4,9 +4,11 @@ class FluQ::Worker
 
   attr_reader :handlers
 
-  # @param [Array<FluQ::Handler>] handlers
+  # @param [Array<Class,Array>] handlers handler builders
   def initialize(handlers = [])
-    @handlers = handlers
+    @handlers = handlers.map do |klass, *args|
+      klass.new(*args)
+    end
   end
 
   # @param [Array<FluQ::Event>] events to process

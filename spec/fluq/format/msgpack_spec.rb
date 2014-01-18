@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe FluQ::Feed::Msgpack do
+describe FluQ::Format::Msgpack do
 
   let(:data) { ([{"a" => "b"}] * 3).map {|h| MessagePack.pack(h) }.join }
 
-  it { should be_a(FluQ::Feed::Base) }
+  it { should be_a(FluQ::Format::Base) }
 
   it 'should parse' do
     events = subject.parse(data)

@@ -1,7 +1,10 @@
 require 'spec_helper'
 
-describe FluQ::Reactor do
+describe FluQ::Feed do
 
+  subject  { described_class.new "my-feed" }
+
+  its(:name)     { should == "my-feed" }
   its(:handlers) { should == [] }
   its(:inputs)   { should == [] }
 
@@ -14,15 +17,8 @@ describe FluQ::Reactor do
     h1 = subject.register(FluQ::Handler::Test)
     subject.should have(1).handlers
 
-    h2 = subject.register(FluQ::Handler::Test, name: "specific")
+    h2 = subject.register(FluQ::Handler::Test)
     subject.should have(2).handlers
-  end
-
-  it "should prevent duplicates" do
-    subject.register(FluQ::Handler::Test)
-    -> {
-      subject.register(FluQ::Handler::Test)
-    }.should raise_error(ArgumentError)
   end
 
 end

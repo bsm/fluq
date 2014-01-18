@@ -56,6 +56,6 @@ module FluQ
   init!
 end
 
-%w'url event reactor worker handler input feed dsl'.each do |name|
+%w'url event runner feed worker handler input format dsl'.each do |name|
   require "fluq/#{name}"
 end

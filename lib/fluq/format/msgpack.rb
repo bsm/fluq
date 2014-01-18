@@ -1,6 +1,6 @@
-class FluQ::Feed::Msgpack < FluQ::Feed::Base
+class FluQ::Format::Msgpack < FluQ::Format::Base
 
-  # @see FluQ::Feed::Base.to_event
+  # @see FluQ::Format::Base.to_event
   def self.to_event(raw)
     case raw
     when Hash
@@ -12,7 +12,7 @@ class FluQ::Feed::Msgpack < FluQ::Feed::Base
   end
 
   # Msgpack initializer
-  # @see FluQ::Feed::Base#initialize
+  # @see FluQ::Format::Base#initialize
   def initialize(*)
     super
     @buffer = MessagePack::Unpacker.new
@@ -20,9 +20,9 @@ class FluQ::Feed::Msgpack < FluQ::Feed::Base
 
   protected
 
-    # @see FluQ::Feed::Base#feed
-    def feed(data, &block)
-      @buffer.feed_each(data, &block)
+    # @see FluQ::Format::Base#parse_each
+    def parse_each(chunk, &block)
+      @buffer.feed_each(chunk, &block)
     end
 
 end if defined?(MessagePack)

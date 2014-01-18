@@ -64,8 +64,8 @@ module FluQ
 
       # Start
       log "Starting FluQ #{FluQ::VERSION} (#{FluQ.env})"
-      FluQ::Reactor.run do |reactor|
-        FluQ::DSL.new(reactor, options[:config]).run
+      FluQ::Runner.run do |runner|
+        FluQ::DSL.new(options[:config]).apply(runner)
         procline
       end
     end

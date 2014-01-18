@@ -6,12 +6,12 @@ class FluQ::Input::Base
   # @attr_reader [Hash] config
   attr_reader :config
 
-  # @param [FluQ::Reactor] reactor
+  # @param [Array<Class,multiple>] handlers handler builders
   # @param [Hash] options various configuration options
-  def initialize(reactor, options = {})
+  def initialize(handlers, options = {})
     super()
     @config = defaults.merge(options)
-    @supviz = FluQ::Worker.supervise reactor.handlers
+    @sup = FluQ::Worker.supervise handlers
   end
 
   # @return [String] descriptive name
@@ -27,12 +27,12 @@ class FluQ::Input::Base
   # Processes data
   # @param [String] data
   def process(data)
-    worker.process feed.parse(data)
+    worker.process format.parse(data)
   end
 
   # @attr_reader [FluQ::Worker] worker instance
   def worker
-    @supviz.actors.first
+    @sup.actors.first
   end
 
   protected
@@ -45,12 +45,12 @@ class FluQ::Input::Base
     def before_terminate
     end
 
-    def feed
-      @feed ||= FluQ::Feed.const_get(config[:feed].to_s.capitalize).new(config[:feed_options])
+    def format
+      @format ||= FluQ::Format.const_get(config[:format].to_s.capitalize).new(config[:format_options])
     end
 
     def defaults
-      { feed: "json", feed_options: {} }
+      { format: "json", format_options: {} }
     end
 
 end

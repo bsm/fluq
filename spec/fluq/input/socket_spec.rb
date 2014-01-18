@@ -6,7 +6,7 @@ describe FluQ::Input::Socket do
   let(:actors)  { [] }
 
   def input(opts = {})
-    actor = described_class.new reactor, opts
+    actor = described_class.new [[FluQ::Handler::Test]], opts
     actors << actor
     actor
   end
@@ -18,21 +18,19 @@ describe FluQ::Input::Socket do
     end
   end
 
-  subject { input bind: "tcp://127.0.0.1:26712", feed: "msgpack" }
+  subject { input bind: "tcp://127.0.0.1:26712", format: "msgpack" }
   after   { actors.each &:terminate }
 
   it { should be_a(FluQ::Input::Base) }
   its(:name)   { should == "socket (tcp://127.0.0.1:26712)" }
-  its(:config) { should == {feed: "msgpack", feed_options: {}, bind: "tcp://127.0.0.1:26712"} }
+  its(:config) { should == {format: "msgpack", format_options: {}, bind: "tcp://127.0.0.1:26712"} }
 
   it 'should require bind option' do
     -> { input }.should raise_error(ArgumentError, /No URL to bind/)
   end
 
   it 'should handle requests' do
-    reactor.register(FluQ::Handler::Test)
     wait_for(subject)
-
     client = TCPSocket.open("127.0.0.1", 26712)
     client.write MessagePack.pack(event)
     client.close
@@ -41,8 +39,7 @@ describe FluQ::Input::Socket do
   end
 
   it 'should support UDP' do
-    reactor.register(FluQ::Handler::Test)
-    udp = input bind: "udp://127.0.0.1:26713", feed: "msgpack"
+    udp = input bind: "udp://127.0.0.1:26713", format: "msgpack"
     wait_for(udp)
 
     client = UDPSocket.new

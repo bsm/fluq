@@ -1,6 +1,6 @@
-class FluQ::Feed::Tsv < FluQ::Feed::Lines
+class FluQ::Format::Tsv < FluQ::Format::Lines
 
-  # @see FluQ::Feed::Base.to_event
+  # @see FluQ::Format::Base.to_event
   def self.to_event(raw)
     timestamp, json = raw.split("\t")
 

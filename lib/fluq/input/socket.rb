@@ -10,7 +10,7 @@ class FluQ::Input::Socket < FluQ::Input::Base
   # @raises [URI::InvalidURIError] if invalid URL is given
   # @example Launch a server
   #
-  #   server = FluQ::Server.new(reactor, bind: "tcp://localhost:7654")
+  #   server = FluQ::Server.new(runner, bind: "tcp://localhost:7654")
   #
   def initialize(*)
     super

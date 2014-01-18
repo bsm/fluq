@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe FluQ::Feed::Lines do
+describe FluQ::Format::Lines do
 
-  subject { FluQ::Feed::Json.new }
+  subject { FluQ::Format::Json.new }
 
   it { should be_a(described_class) }
-  it { should be_a(FluQ::Feed::Base) }
+  it { should be_a(FluQ::Format::Base) }
 
   it 'should parse' do
     subject.parse(%({"a":1})).should have(1).item

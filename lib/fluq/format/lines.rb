@@ -1,7 +1,7 @@
-class FluQ::Feed::Lines < FluQ::Feed::Base
+class FluQ::Format::Lines < FluQ::Format::Base
   include MonitorMixin
 
-  # @see FluQ::Feed::Base#initialize
+  # @see FluQ::Format::Base#initialize
   def initialize(*)
     super
     @buffer = ""
@@ -9,11 +9,11 @@ class FluQ::Feed::Lines < FluQ::Feed::Base
 
   protected
 
-    # @see FluQ::Feed::Base#feed
-    def feed(data)
+    # @see FluQ::Format::Base#parse_each
+    def parse_each(chunk)
       last_chunk = nil
       synchronize do
-        @buffer << data
+        @buffer << chunk
         @buffer.each_line do |line|
           line.chomp!
           next if line.empty?

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe FluQ::Feed::Base do
+describe FluQ::Format::Base do
 
   it "should parse" do
     subject.parse("ANYTHING").should == []

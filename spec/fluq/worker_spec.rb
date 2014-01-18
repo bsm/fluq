@@ -18,15 +18,19 @@ describe FluQ::Worker do
     (0...num).map { event }
   end
 
-  its(:wrapped_object) { should be_instance_of(described_class) }
-  its(:handlers) { should == [] }
+  subject do
+    described_class.new [[FluQ::Handler::Test]]
+  end
+
+  its(:wrapped_object)  { should be_instance_of(described_class) }
+  its(:handlers)        { should have(1).items }
+  its("handlers.first") { should be_instance_of(FluQ::Handler::Test) }
 
   it "should process events" do
-    h1 = subject.handlers.push(FluQ::Handler::Test.new).last
-    h2 = subject.handlers.push(FluQ::Handler::Test.new).last
+    subject.handlers.push(FluQ::Handler::Test.new)
     subject.process(events(1)).should be(true)
-    h1.should have(1).events
-    h2.should have(1).events
+    subject.handlers[0].should have(1).events
+    subject.handlers[1].should have(1).events
   end
 
   it "should prevent handlers from behaving badly" do
@@ -37,9 +41,8 @@ describe FluQ::Worker do
   end
 
   it "should skip filtered events" do
-    h1 = subject.handlers.push(FluQ::Handler::Test.new).last
     subject.process(events(2) + [filtered] + events(3)).should be(true)
-    h1.should have(5).events
+    subject.handlers[0].should have(5).events
   end
 
   it "should apply timeouts" do

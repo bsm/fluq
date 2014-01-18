@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe FluQ::Feed::Tsv do
+describe FluQ::Format::Tsv do
 
   let(:data) { %(1313131313\t{"a":"b"}\n1313131313\t{"a":"b"}\n1313131313\t{"a":"b"}\n) }
 
-  it { should be_a(FluQ::Feed::Lines) }
+  it { should be_a(FluQ::Format::Lines) }
 
   it 'should parse' do
     events = subject.parse(data)

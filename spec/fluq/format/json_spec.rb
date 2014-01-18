@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe FluQ::Feed::Json do
+describe FluQ::Format::Json do
 
   let(:data) { %({"a":"b"}\n{"a":"b"}\n{"a":"b"}\n) }
 
-  it { should be_a(FluQ::Feed::Lines) }
+  it { should be_a(FluQ::Format::Lines) }
 
   it 'should parse' do
     events = subject.parse(data)

@@ -1,6 +1,6 @@
-class FluQ::Feed::Json < FluQ::Feed::Lines
+class FluQ::Format::Json < FluQ::Format::Lines
 
-  # @see FluQ::Feed::Base.to_event
+  # @see FluQ::Format::Base.to_event
   def self.to_event(raw)
     case hash = MultiJson.load(raw)
     when Hash

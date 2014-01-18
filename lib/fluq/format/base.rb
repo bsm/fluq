@@ -1,4 +1,4 @@
-class FluQ::Feed::Base
+class FluQ::Format::Base
   include FluQ::Mixins::Loggable
   extend FluQ::Mixins::Loggable
 
@@ -9,7 +9,7 @@ class FluQ::Feed::Base
   end
 
   # @abstract initializer
-  # @param [Hash] options feed-specific options
+  # @param [Hash] options format-specific options
   def initialize(options = {})
     @options = options
   end
@@ -19,7 +19,7 @@ class FluQ::Feed::Base
   # @return [Array<FluQ::Event>] events
   def parse(data)
     events = []
-    feed(data) do |raw|
+    parse_each(data) do |raw|
       if event = self.class.to_event(raw)
         events.push(event)
         true
@@ -34,9 +34,9 @@ class FluQ::Feed::Base
 
     # @abstract enumerator
     # @param [String] data
-    # @yield over feed of raw events
+    # @yield over raw events
     # @yieldparam [Hash] raw event data
-    def feed(data)
+    def parse_each(data)
     end
 
 end
