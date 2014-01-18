@@ -13,6 +13,7 @@ class FluQ::Input::Base
     @config = defaults.merge(options)
     configure
     @sup = FluQ::Worker.supervise name, handlers
+    async.run
   end
 
   # @return [String] short name

@@ -14,7 +14,6 @@ class FluQ::Input::Socket < FluQ::Input::Base
   #
   def initialize(*)
     super
-    async.run
   end
 
   # @return [String] short name
