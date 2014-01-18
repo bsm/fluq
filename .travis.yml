@@ -6,3 +6,4 @@ rvm:
   - jruby-19mode
 gemfile:
   - Gemfile
+script: bundle exec rake spec:coveralls
