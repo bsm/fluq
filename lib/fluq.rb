@@ -24,9 +24,8 @@ module FluQ
 
   class << self
 
-    # @attr_reader [String] env runtime environemnt
     # @attr_reader [Pathname] root project root
-    attr_reader :env, :root
+    attr_reader :root
 
     # @param [Logger] logger
     def logger=(logger)
@@ -39,15 +38,12 @@ module FluQ
     end
 
     def init!
-      # Detect environment
-      @env  = ENV['FLUQ_ENV'] || "development"
-
       # Set root path
       @root = Pathname.new(ENV['FLUQ_ROOT'] || ".")
 
       # Setup logger
       self.logger  = ::Logger.new(STDOUT)
-      logger.level = ::Logger::INFO if env == "production"
+      logger.level = ::Logger::INFO
     end
     protected :init!
 

@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe FluQ::Input::Base do
 
-  subject        { described_class.new([FluQ::Handler::Test], format: "msgpack") }
-  let(:subject2) { described_class.new([FluQ::Handler::Test], format: "json") }
+  subject        { described_class.new "my-feed", [FluQ::Handler::Test], format: "msgpack" }
+  let(:subject2) { described_class.new "my-feed", [FluQ::Handler::Test], format: "json" }
   let(:handler)  { subject.worker.handlers.first }
   let(:handler2) { subject2.worker.handlers.first }
   let(:data)     { [{"a" => 1}, {"b" => 2}].map {|h| MessagePack.pack(h) }.join }

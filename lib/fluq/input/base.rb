@@ -9,14 +9,16 @@ class FluQ::Input::Base
   # @attr_reader [FluQ::Worker] worker
   attr_reader :worker
 
+  # @param [String] source feed name
   # @param [Array<Class,multiple>] handlers handler builders
   # @param [Hash] options various configuration options
-  def initialize(handlers, options = {})
+  def initialize(source, handlers, options = {})
     super()
     @config = defaults.merge(options)
     configure
 
-    @worker = FluQ::Worker.new_link name, handlers
+    @worker = FluQ::Worker.new_link [source, name].join(":"), handlers
+    logger.info "#{source}: listening to #{description}"
     async.run
   end
 
@@ -32,7 +34,6 @@ class FluQ::Input::Base
 
   # Start the input
   def run
-    logger.info "Listening to #{description}"
   end
 
   # Processes data

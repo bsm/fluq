@@ -23,7 +23,7 @@ class FluQ::Feed < Celluloid::SupervisionGroup
   # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
-    supervise klass, handlers, *args
+    supervise klass, name, handlers, *args
   end
 
   # Registers a handler

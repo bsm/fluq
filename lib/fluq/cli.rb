@@ -33,11 +33,6 @@ module FluQ
         exit
       end
 
-      # Set the environment
-      if options[:env]
-        ENV["FLUQ_ENV"] = options[:env]
-      end
-
       # Boot and add project's lib/ dir to load path
       require 'fluq'
       $LOAD_PATH.unshift FluQ.root.join('lib')
@@ -63,7 +58,7 @@ module FluQ
       end
 
       # Start
-      log "Starting FluQ #{FluQ::VERSION} (#{FluQ.env})"
+      log "Starting FluQ #{FluQ::VERSION} (#{options[:config]})"
       FluQ::Runner.run do |runner|
         FluQ::DSL.new(options[:config]).apply(runner)
         procline
@@ -105,10 +100,6 @@ module FluQ
 
           o.separator ""
           o.separator "Optional:"
-
-          o.on("-e", "--environment ENV", "Runtime environment (default: development)") do |val|
-            @options[:env] = val
-          end
 
           o.on("-l", "--log FILE", "File to log to (default: STDOUT)") do |val|
             @options[:log] = val
