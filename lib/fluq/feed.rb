@@ -1,5 +1,4 @@
-class FluQ::Feed
-  include Celluloid
+class FluQ::Feed < Celluloid::SupervisionGroup
 
   # @attr_reader [String] name
   attr_reader :name
@@ -11,21 +10,20 @@ class FluQ::Feed
   # @param [String] name feed name
   def initialize(name, &block)
     @name     = name.to_s
-    @sup      = Celluloid::SupervisionGroup.new
     @handlers = []
-    block.call(self) if block
+    super(&block)
   end
 
   # @return [Array<FluQ::Input::Base>] inputs
   def inputs
-    @sup.actors
+    actors
   end
 
   # Listens to an input
   # @param [Class<FluQ::Input::Base>] klass input class
   # @param [multiple] args initialization arguments
   def listen(klass, *args)
-    @sup.supervise klass, handlers, *args
+    supervise klass, handlers, *args
   end
 
   # Registers a handler

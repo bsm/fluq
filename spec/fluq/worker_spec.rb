@@ -27,15 +27,20 @@ describe FluQ::Worker do
   its(:handlers)        { should have(1).items }
   its("handlers.first") { should be_instance_of(FluQ::Handler::Test) }
 
+  it "should accept handlers" do
+    h1 = subject.add(FluQ::Handler::Test)
+    subject.should have(2).handlers
+  end
+
   it "should process events" do
-    subject.handlers.push(FluQ::Handler::Test.new)
+    subject.add(FluQ::Handler::Test)
     subject.process(events(1)).should be(true)
     subject.handlers[0].should have(1).events
     subject.handlers[1].should have(1).events
   end
 
   it "should prevent handlers from behaving badly" do
-    h1 = subject.handlers.push(BadHandler.new).last
+    h1 = subject.add(BadHandler)
     -> {
       subject.process(events(1))
     }.should raise_error(RuntimeError, /frozen/)
@@ -47,7 +52,7 @@ describe FluQ::Worker do
   end
 
   it "should apply timeouts" do
-    h1 = subject.handlers.push(FluQ::Handler::Test.new(timeout: 0.001)).last
+    h1 = subject.add(FluQ::Handler::Test, timeout: 0.001)
     h1.events.should_receive(:concat).and_return {|*| sleep(0.01) }
     -> {
       subject.process events(1)

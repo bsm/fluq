@@ -2,10 +2,11 @@ require 'spec_helper'
 
 describe FluQ::Handler::Log do
 
-  let(:event) { FluQ::Event.new({"a" => "1"}, 1313131313) }
-  let(:root)  { FluQ.root.join("../scenario/log/raw") }
-  subject     { described_class.new }
-  before      { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
+  let(:worker) { double FluQ::Worker }
+  let(:event)  { FluQ::Event.new({"a" => "1"}, 1313131313) }
+  let(:root)   { FluQ.root.join("../scenario/log/raw") }
+  subject      { described_class.new worker }
+  before       { FileUtils.rm_rf(root); FileUtils.mkdir_p(root) }
 
   it { should be_a(FluQ::Handler::Base) }
   its("config.keys") { should =~ [:convert, :path, :cache_max, :cache_ttl, :timeout] }
@@ -17,14 +18,14 @@ describe FluQ::Handler::Log do
   end
 
   it 'can have custom conversions' do
-    subject = described_class.new convert: ->e { e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
+    subject = described_class.new worker, convert: ->e { e.merge(ts: e.timestamp).map {|k,v| "#{k}=#{v}" }.join(',') }
     subject.on_events [event]
     subject.pool.each_key {|k| subject.pool[k].flush }
     root.join("20110812.log").read.should == "a=1,ts=1313131313\n"
   end
 
   it 'can rewrite events' do
-    subject = described_class.new rewrite: ->e { e["a"].to_i * 1000 }, path: "log/raw/%Y%m/%t.log"
+    subject = described_class.new worker, rewrite: ->e { e["a"].to_i * 1000 }, path: "log/raw/%Y%m/%t.log"
     subject.on_events [event]
     root.join("201108/1000.log").should be_file
   end

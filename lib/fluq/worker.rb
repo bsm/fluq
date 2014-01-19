@@ -7,8 +7,10 @@ class FluQ::Worker
   # @param [Array<Class,Array>] handlers handler builders
   def initialize(prefix, handlers = [])
     @prefix   = prefix
-    @handlers = handlers.map do |klass, *args|
-      klass.new(*args)
+    @handlers = []
+
+    handlers.each do |klass, *args|
+      add klass, *args
     end
   end
 
@@ -19,6 +21,15 @@ class FluQ::Worker
       on_events(handler, Time.now, events)
     end
     true
+  end
+
+  # Adds a handler
+  # @param [Class<FluQ::Handler::Base>] klass handler class
+  # @param [multiple] args handler initialize arguments
+  def add(klass, *args)
+    handler = klass.new(current_actor, *args)
+    handlers.push handler
+    handler
   end
 
   protected

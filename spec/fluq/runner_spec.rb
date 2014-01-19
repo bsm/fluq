@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe FluQ::Runner do
 
+  after { subject.terminate }
+
   its(:feeds)   { should == [] }
   its(:inspect) { should == "#<FluQ::Runner feeds: []>" }
 

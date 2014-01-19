@@ -14,15 +14,19 @@ class FluQ::Handler::Base
   # @attr_reader [Hash] config
   attr_reader :config
 
+  # @attr_reader [FluQ::Worker] worker
+  attr_reader :worker
+
   # @param [Hash] options
   # @option options [String] :name a (unique) handler identifier
   # @example
   #
   #   class MyHandler < FluQ::Handler::Base
   #   end
-  #   MyHandler.new
+  #   MyHandler.new worker
   #
-  def initialize(options = {})
+  def initialize(worker, options = {})
+    @worker  = worker
     @config  = defaults.merge(options)
     @name    = config[:name] || self.class.type
   end

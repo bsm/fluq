@@ -28,6 +28,11 @@ class FluQ::Runner
     loop { sleep 5 while @sup.alive? }
   end
 
+  # Terminates the runner
+  def terminate
+    @sup.terminate
+  end
+
   # @return [String] introspection
   def inspect
     "#<#{self.class.name} feeds: #{feeds.map(&:name).inspect}>"
