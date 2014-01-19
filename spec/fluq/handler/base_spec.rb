@@ -8,6 +8,7 @@ describe FluQ::Handler::Base do
   it { should be_a(FluQ::Mixins::Loggable) }
   its(:config)  { should == { timeout: 60 } }
   its(:name)    { should == "base" }
+  its(:timers)  { should be_instance_of(Timers) }
 
   it 'should have a type' do
     described_class.type.should == "base"

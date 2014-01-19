@@ -1,7 +1,6 @@
 require 'digest/md5'
 
 class FluQ::Handler::Base
-  include Celluloid
   include FluQ::Mixins::Loggable
 
   # @return [String] handler type
@@ -32,6 +31,11 @@ class FluQ::Handler::Base
   # @return [Array<FluQ::Event>] filtered events
   def filter(events)
     events
+  end
+
+  # @return [Timers] timers
+  def timers
+    @timers ||= Timers.new
   end
 
   # @abstract callback, called on each event

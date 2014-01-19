@@ -8,29 +8,29 @@ class FluQ::Runner
 
   # Constructor
   def initialize(&block)
-    @sup = Celluloid::SupervisionGroup.new
+    @feeds = Celluloid::SupervisionGroup.new
     block.call(self) if block
   end
 
   # @return [Array<FluQ::Feed>]
   def feeds
-    @sup.actors
+    @feeds.actors
   end
 
   # Registers a new feed
   # @param [String] name
   def feed(name, &block)
-    @sup.supervise FluQ::Feed, name, &block
+    @feeds.supervise FluQ::Feed, name, &block
   end
 
   # Starts the runner, blocking
   def run
-    loop { sleep 5 while @sup.alive? }
+    loop { sleep 5 while @feeds.alive? }
   end
 
   # Terminates the runner
   def terminate
-    @sup.terminate
+    @feeds.terminate
   end
 
   # @return [String] introspection

@@ -6,13 +6,17 @@ class FluQ::Input::Base
   # @attr_reader [Hash] config
   attr_reader :config
 
+  # @attr_reader [FluQ::Worker] worker
+  attr_reader :worker
+
   # @param [Array<Class,multiple>] handlers handler builders
   # @param [Hash] options various configuration options
   def initialize(handlers, options = {})
     super()
     @config = defaults.merge(options)
     configure
-    @sup = FluQ::Worker.supervise name, handlers
+
+    @worker = FluQ::Worker.new_link name, handlers
     async.run
   end
 
@@ -35,11 +39,6 @@ class FluQ::Input::Base
   # @param [String] data
   def process(data)
     worker.process format.parse(data)
-  end
-
-  # @attr_reader [FluQ::Worker] worker instance
-  def worker
-    @sup.actors.first
   end
 
   protected

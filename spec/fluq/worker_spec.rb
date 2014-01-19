@@ -19,20 +19,20 @@ describe FluQ::Worker do
   end
 
   subject do
-    described_class.new "src", [[FluQ::Handler::Test]]
+    described_class.new "src", []
   end
 
   its(:wrapped_object)  { should be_instance_of(described_class) }
   its(:prefix)          { should == "src" }
-  its(:handlers)        { should have(1).items }
-  its("handlers.first") { should be_instance_of(FluQ::Handler::Test) }
+  its(:handlers)        { should have(:no).items }
 
   it "should accept handlers" do
     h1 = subject.add(FluQ::Handler::Test)
-    subject.should have(2).handlers
+    subject.should have(1).handlers
   end
 
   it "should process events" do
+    subject.add(FluQ::Handler::Test)
     subject.add(FluQ::Handler::Test)
     subject.process(events(1)).should be(true)
     subject.handlers[0].should have(1).events
@@ -47,25 +47,41 @@ describe FluQ::Worker do
   end
 
   it "should skip filtered events" do
+    h1 = subject.add(FluQ::Handler::Test)
     subject.process(events(2) + [filtered] + events(3)).should be(true)
-    subject.handlers[0].should have(5).events
+    h1.should have(5).events
   end
 
   it "should apply timeouts" do
     h1 = subject.add(FluQ::Handler::Test, timeout: 0.001)
-    h1.events.stub(:concat).and_return {|*| sleep(0.01) }
+    h1.events.stub(:concat).and_return {|*| sleep(0.1) }
     -> {
       subject.process events(1)
-    }.should raise_error(Celluloid::Task::TimeoutError)
+    }.should raise_error(Timeout::Error)
   end
 
   it "should propagate handler crashes" do
     h1 = subject.add(FluQ::Handler::Test)
-    h1.events.stub(:concat).and_raise("CRASH!")
+    h1.events.stub(:concat).and_raise("BOOM!")
     -> {
       subject.process events(1)
     }.should raise_error(RuntimeError)
-    subject.inspect.should include("dead")
+    subject.inspect.should include("(FluQ::Worker) dead")
+  end
+
+  it "should execute handler timers" do
+    x = 0
+    h = subject.add(FluQ::Handler::Test)
+    h.timers.every(0.01) { x += 1 }
+    20.times { break if x > 0; sleep(0.01) }
+    x.should > 0
+  end
+
+  it "should propagate handler timer crashes" do
+    h1 = subject.add(FluQ::Handler::Test)
+    h1.timers.every(0.01) { raise "BOOM!" }
+    20.times { break if subject.inspect.include?("dead"); sleep(0.01) }
+    subject.inspect.should include("(FluQ::Worker) dead")
   end
 
 end
