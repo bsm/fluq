@@ -53,10 +53,19 @@ describe FluQ::Worker do
 
   it "should apply timeouts" do
     h1 = subject.add(FluQ::Handler::Test, timeout: 0.001)
-    h1.events.should_receive(:concat).and_return {|*| sleep(0.01) }
+    h1.events.stub(:concat).and_return {|*| sleep(0.01) }
     -> {
       subject.process events(1)
-    }.should raise_error(Timeout::Error)
+    }.should raise_error(Celluloid::Task::TimeoutError)
+  end
+
+  it "should propagate handler crashes" do
+    h1 = subject.add(FluQ::Handler::Test)
+    h1.events.stub(:concat).and_raise("CRASH!")
+    -> {
+      subject.process events(1)
+    }.should raise_error(RuntimeError)
+    subject.inspect.should include("dead")
   end
 
 end

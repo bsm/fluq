@@ -1,6 +1,7 @@
 require 'digest/md5'
 
 class FluQ::Handler::Base
+  include Celluloid
   include FluQ::Mixins::Loggable
 
   # @return [String] handler type
@@ -14,19 +15,15 @@ class FluQ::Handler::Base
   # @attr_reader [Hash] config
   attr_reader :config
 
-  # @attr_reader [FluQ::Worker] worker
-  attr_reader :worker
-
   # @param [Hash] options
   # @option options [String] :name a (unique) handler identifier
   # @example
   #
   #   class MyHandler < FluQ::Handler::Base
   #   end
-  #   MyHandler.new worker
+  #   MyHandler.new
   #
-  def initialize(worker, options = {})
-    @worker  = worker
+  def initialize(options = {})
     @config  = defaults.merge(options)
     @name    = config[:name] || self.class.type
   end

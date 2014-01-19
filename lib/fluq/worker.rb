@@ -1,6 +1,7 @@
 class FluQ::Worker
   include Celluloid
   include FluQ::Mixins::Loggable
+  finalizer :finalize
 
   attr_reader :prefix, :handlers
 
@@ -27,7 +28,7 @@ class FluQ::Worker
   # @param [Class<FluQ::Handler::Base>] klass handler class
   # @param [multiple] args handler initialize arguments
   def add(klass, *args)
-    handler = klass.new(current_actor, *args)
+    handler = klass.new_link(*args)
     handlers.push handler
     handler
   end
@@ -36,10 +37,20 @@ class FluQ::Worker
 
     def on_events(handler, start, events)
       matching = handler.filter(events)
-      ::Timeout.timeout handler.config[:timeout] do
+      timeout handler.config[:timeout] do
         handler.on_events(matching)
         logger.info { "#{prefix}:#{handler.name} #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
       end unless matching.empty?
+    end
+
+    # Terminate the handlers
+    def finalize
+      handlers.reverse_each do |handler|
+        begin
+          handler.terminate
+        rescue Celluloid::DeadActorError
+        end
+      end
     end
 
 end
