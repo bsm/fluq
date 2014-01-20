@@ -60,7 +60,7 @@ module FluQ
       # Start
       log "Starting FluQ #{FluQ::VERSION} (#{options[:config]})"
       FluQ::Runner.run do |runner|
-        FluQ::DSL.new(options[:config]).apply(runner)
+        FluQ::DSL::Root.new(options[:config]).apply(runner)
         procline
       end
     end
