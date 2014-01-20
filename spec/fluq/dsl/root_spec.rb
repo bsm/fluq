@@ -3,7 +3,7 @@ require 'spec_helper'
 describe FluQ::DSL::Root do
 
   let(:runner) { FluQ::Runner.new }
-  subject      { described_class.new FluQ.root.join('../scenario/config/test.rb') }
+  subject      { described_class.new FluQ.root.join('../scenario/config/test.rb').to_s }
 
   its(:feeds)  { should have(2).items }
   its("feeds.first") { should be_instance_of(FluQ::DSL::Feed) }

@@ -7,7 +7,7 @@ class FluQ::DSL::Root < FluQ::DSL::Base
     @path   = Pathname.new(path)
     @feeds  = []
 
-    instance_eval path.read
+    instance_eval @path.read
   end
 
   # @param [String] feed name, e.g. "my_events"
