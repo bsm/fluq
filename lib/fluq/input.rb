@@ -1,6 +1,6 @@
 module FluQ::Input
 end
 
-%w'base socket'.each do |name|
+%w'base noop socket'.each do |name|
   require "fluq/input/#{name}"
 end
