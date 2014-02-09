@@ -41,11 +41,13 @@ class FluQ::Worker
     end
 
     def on_events(handler, start, events)
-      matching = handler.filter(events)
       ::Timeout::timeout handler.config[:timeout] do
-        handler.on_events(matching)
-        logger.info { "#{prefix}:#{handler.name} #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
-      end unless matching.empty?
+        matching = handler.filter(events)
+        unless matching.empty?
+          handler.on_events(matching)
+          logger.info { "#{prefix}:#{handler.name} #{matching.size}/#{events.size} events in #{((Time.now - start) * 1000).round}ms" }
+        end
+      end
     end
 
   private
